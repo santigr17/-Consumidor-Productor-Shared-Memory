@@ -1,222 +1,162 @@
-# include <stdint.h>
-# include <inttypes.h>
 #include <stdio.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include "buffercircular.h"
 
 
 
+//Definición de función que crea el buffer
 
-
-// definición de la structura del buffer
-
-
-struct circular_buf_t {
-	uint8_t * buffer;
-	size_t head;
-	size_t tail;
-	size_t max; //of the buffer
-	bool full;
-};
-
-
-
-cbuf_handle_t circular_buf_init(uint8_t* buffer, size_t size)
+errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, buffer *ctx, int *err)
 {
-	assert(buffer && size);
+    
+    int fdshmem = 0;
+	size_t szshmem = 0;
+	void *shmem = NULL;
 
-	cbuf_handle_t cbuf = malloc(sizeof(circular_buf_t));
-	assert(cbuf);
+    //Se pude el tamaño necesario para el bloque de control + los bloques para mensajes
+	szshmem = sizeof(buffer) + (totalElementos * tamElementos);
+	fdshmem = shm_open(name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
 
-	cbuf->buffer = buffer;
-	cbuf->max = size;
-	circular_buf_reset(cbuf);
-
-	assert(circular_buf_empty(cbuf));
-
-	return cbuf;
-}
-
-void circular_buf_reset(cbuf_handle_t cbuf)
-{
-    assert(cbuf);
-
-    cbuf->head = 0;
-    cbuf->tail = 0;
-    cbuf->full = false;
-}
-
-
-void circular_buf_free(cbuf_handle_t cbuf)
-{
-	assert(cbuf);
-	free(cbuf);
-}
-
-
-bool circular_buf_full(cbuf_handle_t cbuf)
-{
-	assert(cbuf);
-
-    return cbuf->full;
-}
-
-bool circular_buf_empty(cbuf_handle_t cbuf)
-{
-	assert(cbuf);
-
-    return (!cbuf->full && (cbuf->head == cbuf->tail));
-}
-
-
-
-size_t circular_buf_size(cbuf_handle_t cbuf)
-{
-	assert(cbuf);
-
-	size_t size = cbuf->max;
-
-	if(!cbuf->full)
-	{
-		if(cbuf->head >= cbuf->tail)
-		{
-			size = (cbuf->head - cbuf->tail);
-		}
-		else
-		{
-			size = (cbuf->max + cbuf->head - cbuf->tail);
-		}
+	if(fdshmem == -1){
+		*err = errno;
+		return(SCB_SHMEM);
+	}
+    //Se verifica que el tamaño de memoria a solicitar y el que se necesita calzen
+	if(ftruncate(fdshmem, szshmem) == -1){
+		*err = errno;
+		shm_unlink(name);
+		return(SCB_FTRUNC);
 	}
 
-	return size;
-}
-
-
-static void advance_pointer(cbuf_handle_t cbuf)
-{
-	assert(cbuf);
-
-	if(cbuf->full)
-   	{
-		cbuf->tail = (cbuf->tail + 1) % cbuf->max;
+    //Se pide la memoria compartida con mmap
+    
+	shmem = mmap(NULL, szshmem, PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	if(shmem == MAP_FAILED){
+		*err = errno;
+		shm_unlink(name);
+		return(SCB_MMAP);
 	}
 
-	cbuf->head = (cbuf->head + 1) % cbuf->max;
-	cbuf->full = (cbuf->head == cbuf->tail);
+	close(fdshmem);
+
+    //Se asignan los punteros
+
+	ctx->ctrl = (buffer *)shmem;
+
+	strncpy(ctx->name, name, TAMAX_NOMBRE);
+    //Se setean los valores de los punteros
+	ctx->ctrl->cabeza = 0;
+	ctx->ctrl->cola = 0;
+	ctx->ctrl->qtd  = 0;
+
+    ctx->ctrl->consumidores = 0;
+    ctx->ctrl->productores = 0;
+
+	ctx->ctrl->capacidad     = totalElementos;
+	ctx->ctrl->largo_mensaje = tamElementos;
+
+	ctx->mensajes = (void *)(shmem + sizeof(buffer));
+
+    /*Se pide y se crea el semáforo para vacío
+    
+    Si falla se usa unlink para devolver la mem
+    */
+
+	if(sem_init(&(ctx->ctrl->vacio), 1, totalElementos) == -1){
+		*err = errno;
+		shm_unlink(name);
+		return(SCB_SEMPH);
+	}
+
+    /*Se pide y se crea el semáforo para lleno
+    
+    Si falla se destruye el sem anterior y se usa unlink para devolver la mem
+    */
+
+	if(sem_init(&(ctx->ctrl->lleno), 1, 0) == -1){
+		*err = errno;
+		sem_destroy(&ctx->ctrl->vacio);
+		shm_unlink(name);
+		return(SCB_SEMPH);
+	}
+    /*Se pide y se crea el semáforo para condición de carrera
+    
+    Si falla se destruye los sem anteriores y se usa unlink para devolver la mem
+    */
+
+
+	if(sem_init(&(ctx->ctrl->con_carrera), 1, 1) == -1){
+		*err = errno;
+		sem_destroy(&ctx->ctrl->vacio);
+		sem_destroy(&ctx->ctrl->lleno);
+		shm_unlink(name);
+		return(SCB_SEMPH);
+	}
+
+     /*Se pide y se crea el semáforo para finalizar todo
+    
+    Si falla se destruye los sem anteriores y se usa unlink para devolver la mem
+    */
+
+
+	if(sem_init(&(ctx->ctrl->finalizar), 1, 0) == -1){
+		*err = errno;
+		sem_destroy(&ctx->ctrl->vacio);
+		sem_destroy(&ctx->ctrl->lleno);
+        sem_destroy(&ctx->ctrl->con_carrera);
+		shm_unlink(name);
+		return(SCB_SEMPH);
+	}
+
+
+	*err = 0;
+	return(SCB_OK);
+
 }
 
-static void retreat_pointer(cbuf_handle_t cbuf)
+
+//Función para obtener información del buffer
+
+errores scb_getInfo(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores,int *err)
 {
-	assert(cbuf);
+	int fdshmem = 0;
+	void *shmem = NULL;
 
-	cbuf->full = false;
-	cbuf->tail = (cbuf->tail + 1) % cbuf->max;
+    //similar a create se utiliza la etiqueta name para pedir los datos
+
+	fdshmem = shm_open(name, O_RDONLY, S_IRUSR | S_IWUSR);
+	if(fdshmem == -1){
+		*err = errno;
+		return(SCB_SHMEM);
+	}
+
+	shmem = mmap(NULL, sizeof(buffer), PROT_READ, MAP_SHARED, fdshmem, 0);
+	if(shmem == MAP_FAILED){
+		*err = errno;
+		shm_unlink(name);
+		return(SCB_SHMEM);
+	}
+
+	memcpy(inf, shmem, sizeof(buffer_control));
+
+	sem_getvalue(&((buffer_control *) shmem)->lleno, semlleno);
+	sem_getvalue(&((buffer_control *) shmem)->vacio, semvacio);
+	sem_getvalue(&((buffer_control *) shmem)->con_carrera, semcon_carrera);
+
+	close(fdshmem);
+
+	return(SCB_OK);
 }
 
-
-void circular_buf_put(cbuf_handle_t cbuf, uint8_t data)
-{
-	assert(cbuf && cbuf->buffer);
-
-    cbuf->buffer[cbuf->head] = data;
-
-    advance_pointer(cbuf);
-}
-
-
-int circular_buf_put2(cbuf_handle_t cbuf, uint8_t data)
-{
-    int r = -1;
-
-    assert(cbuf && cbuf->buffer);
-
-    if(!circular_buf_full(cbuf))
-    {
-        cbuf->buffer[cbuf->head] = data;
-        advance_pointer(cbuf);
-        r = 0;
-    }
-
-    return r;
-}
-
-
-int circular_buf_get(cbuf_handle_t cbuf, uint8_t * data)
-{
-    assert(cbuf && data && cbuf->buffer);
-
-    int r = -1;
-
-    if(!circular_buf_empty(cbuf))
-    {
-        *data = cbuf->buffer[cbuf->tail];
-        retreat_pointer(cbuf);
-
-        r = 0;
-    }
-
-    return r;
-}
-
-size_t circular_buf_capacity(cbuf_handle_t cbuf)
-{
-	assert(cbuf);
-
-	return cbuf->max;
-}
-
-//probando ejemplo
-
-int main() {
-
-//Se pide espacio y se inicia buffer
-   uint8_t * buffer  = malloc(10 * sizeof(uint8_t));
-    cbuf_handle_t cbuf = circular_buf_init(buffer, 10);
-
-// Se setean banderas full y empty
-   
-    bool full = circular_buf_full(cbuf);
-    bool empty = circular_buf_empty(cbuf);
-
-    printf("Está el buffer vacío?: %i\n", empty);
-    printf("Está el buffer lleno?: %i\n", full);
-    printf("Tamaño actual del buffer: %zu\n", circular_buf_size(cbuf));
-    printf("Capacidad máxima del buffer: %zu\n", circular_buf_capacity(cbuf));
-
-
-
-
-
-    //Se crea un dato
-     uint8_t data = 8;
-     //se inserta el dato
-    circular_buf_put( cbuf, data);
-    printf("Se insertó un dato \n");
-  
-    printf("Está el buffer vacío?: %i\n", empty);
-    printf("Está el buffer lleno?: %i\n", full);
-    printf("Tamaño actual del buffer: %zu\n", circular_buf_size(cbuf));
-    printf("Capacidad máxima del buffer: %zu\n", circular_buf_capacity(cbuf));
-
-
-
-   
-   
-   
-   //Se libera memoria 
-   free(buffer);
-   circular_buf_free(cbuf);
-   return 0;
-}
-
-
-
-
-
-
+//Función para el manejo de errores 
 
 
 

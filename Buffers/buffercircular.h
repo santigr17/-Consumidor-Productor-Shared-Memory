@@ -1,108 +1,103 @@
 #ifndef _BUFFERCIRCULAR_H
 #define _BUFFERCIRCULAR_H
 
-# include <stdint.h>
-# include <inttypes.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <stdint.h>
+#include <semaphore.h>
 
+//Se define tamaño máximo para el nombre y los errores
 
-/*
+#define TAMAX_NOMBRE (30)
+#define TAMAX_MSGERROR (100)
 
-Código hecho por Esteban Ferarios , basado en: https://embeddedartistry.com/blog/2017/05/17/creating-a-circular-buffer-in-c-and-c/
-
-*/
-
-//Estructura de un buffer circular
-typedef struct circular_buf_t circular_buf_t;
-
-/*Para evitar problemas con el puntero
- Handle type, Manera en que los usuarios interacturán con el API*/
-typedef circular_buf_t* cbuf_handle_t;
+//Se crea struct para controlar el buffer y ver su estado
 
 /*
-Primero, debemos pensar en cómo los usuarios interactuarán con un búfer circular:
-
-    -Necesitan inicializar el contenedor de búfer circular con un búfer y tamaño
-    -Necesitan destruir un contenedor de búfer circular
-    -Necesitan restablecer el contenedor de búfer circular
-    -Necesitan poder agregar datos al búfer
-    -Deben poder obtener el siguiente valor del búfer
-    -Necesitan saber si el búfer está lleno o vacío
-    -Necesitan saber el número actual de elementos en el búfer
-    -Necesitan saber la capacidad máxima del búfer
-
-*/
-
-//Se utilizara uint8_t. Este es un tipo entero con un ancho de exactamente 
-//8, 16, 32 o 64 bits. Para los tipos con signo, los valores negativos 
-//se representan usando el complemento de 2. Sin partes de relleno.
++-------------+-----------+-----------+-----+-----------+
+| Buffer control | espacio 1 | espacio 2 | ... | espacio n |
++-------------+-----------+-----------+-----+-----------+*/
 
 
-/// Pide el tamaño del buffer
-/// Retorna un manejadore de buffer(handle)
-cbuf_handle_t circular_buf_init(uint8_t* buffer, size_t size);
+//estructura para el control
 
-/// Liberar la estructura buffer circular.
-/// No libera la data el buffer; el dueño es el responsable de esto.
-void circular_buf_free(cbuf_handle_t cbuf);
+typedef struct _buffer_control{
+	sem_t vacio;
+	sem_t lleno;
+	sem_t con_carrera;
+    sem_t finalizar;
 
-/// Resete el buffer a vacio, cabeza == cola
-void circular_buf_reset(cbuf_handle_t cbuf);
-
-/// Poner versión 1 continúa agregando datos si el búfer está lleno
-/// Dato viejos son sobreescritos
-void circular_buf_put(cbuf_handle_t cbuf, uint8_t data);
-
-/// Put Versión 2 rechaza datos nuevos si el búfer está lleno
-/// Retorna 0 si es exitoso, -1 si el buffer está lleno
-int circular_buf_put2(cbuf_handle_t cbuf, uint8_t data);
-
-/// Devuelve el valor del buffer
-/// Retorna 0 si fue un exito, -1 si el buffer está vacío
-
-int circular_buf_get(cbuf_handle_t cbuf, uint8_t * data);
-
-/// Retorna true si el buffer está vacío
-bool circular_buf_empty(cbuf_handle_t cbuf);
-
-/// Retorna true si el buffer está lleno
-bool circular_buf_full(cbuf_handle_t cbuf);
-
-/// Retorna la capacidad máxima del buffer
-size_t circular_buf_capacity(cbuf_handle_t cbuf);
-
-/// Retorna el número actual de elementos en el buffer
-size_t circular_buf_size(cbuf_handle_t cbuf);
+	uint16_t cabeza;
+	uint16_t cola;
+	uint16_t qtd;
 
 
-/*
-Tanto los casos "lleno" como "vacío" del búfer circular se ven iguales: 
-el puntero de la cabeza y la cola son iguales. 
-Hay dos enfoques para diferenciar entre lleno y vacío:
+	uint16_t capacidad;
+	size_t   largo_mensaje; 
+
+
+	uint16_t consumidores;
+	uint16_t productores;
+	
+
+}buffer_control;
+
+
+// estructura para el total del buffer
+
+typedef struct _buffer{
+	char name[TAMAX_NOMBRE];
+	buffer_control *ctrl;
+	void *mensajes;
+}buffer;
+
+
+// estructura para iterar (revisar)
+
+typedef struct _iterar{
+	uint16_t it;
+	uint16_t qtd;
+}iterar;
+
+// enum para manejo de error
 
 
 
-1-gastar un slot del buffer:
+typedef enum{
+	SCB_OK = 0,
+	SCB_SHMEM,
+	SCB_FTRUNC,
+	SCB_SEMPH,
+	SCB_MMAP,
+	SCB_LLENO,
+	SCB_VACIO,
+	SCB_BLOQUEADO,
+	SCB_ITER_FINAL
+}errores;
 
-Estado lleno es cola + 1 == cabeza;
-Estado vacío es cabeza == cola;
+//enum para bloquear el buffer
 
-2-Usar una bandera boleana y lógica adicional para diferentes estados:
- 
- Estado lleno is lleno
- Estado vacío es (cabeza ==cola) y !lleno
+typedef enum{
+	SCB_BLOQUEAR = 0,
+	SCB_DESBLOQUEAR
+}bloqueo;
 
- En lugar de desperdiciar un espacio de datos potencialmente valioso, 
- la implementación a continuación utiliza el indicador bool. 
- El uso del indicador requiere lógica adicional en las rutinas get y put 
- para actualizar el indicador. 
+//función para crear un buffer compartido nuevo
+
+errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, buffer *ctx, int *err);
 
 
-*/
+//función para obtener la información del buffer
+
+errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);
+
+//función para destruir el buffer
+
+errores destruir(char *name, int *err);
+
+
+//función para control de errores
+
+void check_error(errores err, int ret, char *msg);
+
 
 
 
