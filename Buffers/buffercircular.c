@@ -113,13 +113,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 		return(SCB_SEMPH);
 	}
 
-  
 
-
- 
-
-
-	
 
 	*err = 0;
 	return(SCB_OK);
@@ -148,16 +142,7 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 
 
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-	if(scberr != SCB_OK) return(scberr);
 
- 		if(&tipo ==1){
-		  //decirle al puntero de productores que se sume 1 
-	
-	   }
-	   else{   
-		   //decirle al puntero de consumidores que se sume 1 
-
-	   }
 
     //se calcula lo grande del largo de mem
 	szshmem = sizeof(buffer_control) + (scbInf.capacidad * scbInf.largo_mensaje);
@@ -175,6 +160,17 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 		return(SCB_SHMEM);
 	}
 
+	//Se modifica estados de productores o consumidores
+
+		if(scberr != SCB_OK) return(scberr);
+		buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ|PROT_WRITE, MAP_SHARED, fdshmem, 0);
+ 		
+		  //decirle al puntero de productores que se sume 1 
+		productores_nuevos = scbInf.productores +1;
+		printf("Info nueva.: [%u]\n", productores_nuevos);
+		(*puntero).productores = productores_nuevos;
+	 
+
 	close(fdshmem);
 
     //Se ligan los punteros
@@ -182,13 +178,6 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 	ctx->ctrl = (buffer_control *)shmem;
 	ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
 	strncpy(ctx->name, name, TAMAX_MSGERROR);
-
-	 
-    
-		
-	
-	    
-	  
 
 
 	*err = 0;

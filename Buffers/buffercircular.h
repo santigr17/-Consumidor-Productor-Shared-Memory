@@ -20,25 +20,17 @@
 //estructura para el control
 
 typedef struct _buffer_control{
+	uint16_t consumidores;
+	uint16_t productores;
 	sem_t vacio;
 	sem_t lleno;
 	sem_t con_carrera;
-    
 	uint16_t finalizar;
-
 	uint16_t cabeza;
 	uint16_t cola;
 	uint16_t qtd;
-
-
 	uint16_t capacidad;
 	size_t   largo_mensaje; 
-
-
-	uint16_t consumidores;
-	uint16_t productores;
-	
-
 }buffer_control;
 
 
