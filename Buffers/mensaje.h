@@ -1,9 +1,10 @@
 #ifndef _MENSAJE_H
 #define _MENSAJE_H
-
+#include <time.h>
 typedef struct _mensaje{
-	int a;
-	float b;
+	int numero_magico;
+	pid_t pid; // El process id del productor
+	time_t time; //EPOCH el momento cuando se crea el mensaje cantidad de segundos desde  1 de enero de 1970
 }mensaje;
 
 #define SCB_SAMPLE_CHECK_ERROR(__SCBSAMPLE_RET, __SCB_SAMPLE_APIERR, __SCB_SAMPLE_ERRNO, __SCB_SAMPLE_RET) \
