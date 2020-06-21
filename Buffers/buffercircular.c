@@ -139,8 +139,29 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 
     /*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
     //se busca la infor de ese buffer
+    // se consigue la info actual  de ese espacio de memoria
+
+        printf("Antes del get info ");
+    
+		int productores_nuevos = 0;
+		int consumidores_nuevos = 0;
+
+
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
 	if(scberr != SCB_OK) return(scberr);
+
+ 		if(&tipo ==1){
+		   productores_nuevos = scbInf.productores + 1;
+		   printf("en el  if : [%u]\n", scbInf.productores);
+		   ctx->ctrl->productores = productores_nuevos;
+	
+	   }
+	   else{   
+		   consumidores_nuevos = scbInf.consumidores +1;
+		    ctx->ctrl->productores = consumidores_nuevos;
+
+	   }
+
     //se calcula lo grande del largo de mem
 	szshmem = sizeof(buffer_control) + (scbInf.capacidad * scbInf.largo_mensaje);
 
@@ -165,34 +186,12 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 	ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
 	strncpy(ctx->name, name, TAMAX_MSGERROR);
 
-	   // se consigue la info actual  de ese espacio de memoria
-
-        printf("Antes del get info ");
-        
-	    int semlleno = 0;
-		int productores_nuevos = 0;
-		int consumidores_nuevos = 0;
-    	int semvacio = 0;
-    	int semcon_carrera = 0;
-	    buffer_control inf;
-	    errores scberr2;
+	 
+    
 		
-		scberr2 = get_info_buffer(&name, &inf, &semlleno, &semvacio, &semcon_carrera, &err);
-	    SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
 	
-	  printf("Antes del if : [%u]\n", inf.productores);
 	    
-	   if(&tipo ==1){
-		   productores_nuevos = inf.productores + 1;
-		   printf("en el  if : [%u]\n", inf.productores);
-		   ctx->ctrl->productores = productores_nuevos;
-	
-	   }
-	   else{   
-		   consumidores_nuevos = inf.consumidores +1;
-		    ctx->ctrl->productores = consumidores_nuevos;
-
-	   }
+	  
 
 
 	*err = 0;
