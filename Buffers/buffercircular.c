@@ -151,14 +151,11 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 	if(scberr != SCB_OK) return(scberr);
 
  		if(&tipo ==1){
-		   productores_nuevos = scbInf.productores + 1;
-		   printf("en el  if : [%u]\n", scbInf.productores);
-		   ctx->ctrl->productores = productores_nuevos;
+		  //decirle al puntero de productores que se sume 1 
 	
 	   }
 	   else{   
-		   consumidores_nuevos = scbInf.consumidores +1;
-		    ctx->ctrl->productores = consumidores_nuevos;
+		   //decirle al puntero de consumidores que se sume 1 
 
 	   }
 
