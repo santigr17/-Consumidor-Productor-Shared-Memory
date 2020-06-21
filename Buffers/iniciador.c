@@ -9,50 +9,59 @@
 int main(int argc, char *argv[])
 {
 	int ret = 0;
-
+    unsigned int cantidad = 0;
 	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
 	buffer ctx;
-	errores scberr = SCB_OK;
+	errores scberr1 = SCB_OK;
 	mensaje carta;
 
 	if(argc != 3){
-		printf("Usage: %s [SEMAPHORE_NAME] [SECONDS]\n", argv[0]);
-		return(1);
+		printf("Por favor indique nombre del buffer y cantidad de mensajes\n");
+		printf("Argumento 0: [%s]\n", argv[0]);
+        printf("Argumento 1: [%s]\n", argv[1]);
+        printf("Argumento 2: [%s]\n", argv[2]);
+        return(1);
 	}
+
+    //Se convierte el segundo argumento capturado a unsigned int
+
+    cantidad = atoi(argv[2]);
 
 
 	printf("Creando Buffer Cicular compartido: [%s]\n", argv[1]);
-	scberr = crear_buffer(argv[1], argv[2], sizeof(mensaje), &ctx, &ret);
+	scberr1 = crear_buffer(argv[1], cantidad, sizeof(mensaje), &ctx, &ret);
 
     //Se prueba la info del buffer creado:
 
-
-    while(1){
-        int err = 0;
+      int err = 0;
 	    int semlleno = 0;
     	int semvacio = 0;
-        int semconsumidores = 0;
-        int semproductores = 0;
     	int semcon_carrera = 0;
 	    buffer_control inf;
-	    errores scberr;
+	    errores scberr2;
 
-	if(argc != 2){
-		printf("Usage: %s [SEMAPHORE_NAME]\n", argv[0]);
-		return(1);
-	}
 
-	scberr = (argv[1], &inf, &semlleno, &semvacio, &semcon_carrera,&semconsumidores,&semproductores, &err);
-	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr, err, 1);
+    while(1){
+      
 
-	printf("Circular buffer name: [%s]\n", argv[1]);
-	printf("Cabeza................: [%u]\n", inf.cabeza);
+     system("clear");
+    /* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+	
+    
+    
+    scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
+
+	printf("Nombre: [%s]\n", argv[1]);
+	printf("Cabeza..............: [%u]\n", inf.cabeza);
 	printf("COLA................: [%u]\n", inf.cola);
 	printf("Qtd.................: [%u]\n", inf.qtd);
 	printf("Capaciad total......: [%u]\n", inf.capacidad);
-	printf("Tamaño de mensaje: [%lu]\n", inf.largo_mensaje);
-	printf("Semaforos..........: Lleno [%d] | Vacio [%d] | Con_carrera [%d] | Consumidores [%d] | Productores [%d]\n", semlleno, semvacio, semcon_carrera,semconsumidores,semproductores);
+	printf("Productores.........: [%u]\n", inf.productores);
+	printf("Consumidores........: [%u]\n", inf.consumidores);
 
+	printf("Semaforos..........: Lleno [%d] | Vacio [%d] | Con_carrera [%d]\n", semlleno, semvacio, semcon_carrera);
+    sleep(10);
     }
 
 

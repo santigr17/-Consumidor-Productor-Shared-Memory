@@ -11,6 +11,18 @@
 #include "buffercircular.h"
 
 
+#define SCB_SAMPLE_CHECK_ERROR(__SCBSAMPLE_RET, __SCB_SAMPLE_APIERR, __SCB_SAMPLE_ERRNO, __SCB_SAMPLE_RET) \
+{                                                                                                          \
+	if(__SCBSAMPLE_RET != __SCB_SAMPLE_APIERR){                                                             \
+		char scberrormsg[TAMAX_MSGERROR + 1] = {'\0'};                                                   \
+		check_error(__SCB_SAMPLE_APIERR, __SCB_SAMPLE_ERRNO, scberrormsg);                                  \
+		printf("%s", scberrormsg);                                                                           \
+		return(__SCB_SAMPLE_RET);                                                                            \
+	}                                                                                                       \
+}
+
+
+
 
 //Definición de función que crea el buffer
 
@@ -49,7 +61,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 
     //Se asignan los punteros
 
-	ctx->ctrl = (buffer *)shmem;
+	ctx->ctrl = (buffer_control *)shmem;
 
 	strncpy(ctx->name, name, TAMAX_NOMBRE);
     //Se setean los valores de los punteros
@@ -57,8 +69,8 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 	ctx->ctrl->cola = 0;
 	ctx->ctrl->qtd  = 0;
 
-    ctx->ctrl->consumidores = 0;
-    ctx->ctrl->productores = 0;
+	ctx->ctrl->productores = 0;
+	ctx->ctrl->consumidores  = 0;
 
 	ctx->ctrl->capacidad     = totalElementos;
 	ctx->ctrl->largo_mensaje = tamElementos;
@@ -101,31 +113,95 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 		return(SCB_SEMPH);
 	}
 
-     /*Se pide y se crea el semáforo para finalizar todo
-    
-    Si falla se destruye los sem anteriores y se usa unlink para devolver la mem
-    */
+  
 
 
-	if(sem_init(&(ctx->ctrl->finalizar), 1, 0) == -1){
-		*err = errno;
-		sem_destroy(&ctx->ctrl->vacio);
-		sem_destroy(&ctx->ctrl->lleno);
-        sem_destroy(&ctx->ctrl->con_carrera);
-		shm_unlink(name);
-		return(SCB_SEMPH);
-	}
+ 
 
+
+	
 
 	*err = 0;
 	return(SCB_OK);
 
 }
 
+//Función para ligar procesos al espacio de memoria del buffer
+
+errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
+{
+	int fdshmem = 0;
+	int sf = 0, se = 0, sb = 0;
+	size_t szshmem = 0;
+	void *shmem = NULL;
+	buffer_control scbInf;
+	errores scberr;
+
+    /*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+    //se busca la infor de ese buffer
+	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
+	if(scberr != SCB_OK) return(scberr);
+    //se calcula lo grande del largo de mem
+	szshmem = sizeof(buffer_control) + (scbInf.capacidad * scbInf.largo_mensaje);
+
+	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
+	if(fdshmem == -1){
+		*err = errno;
+		return(SCB_SHMEM);
+	}
+
+	shmem = mmap(NULL, szshmem, PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	if(shmem == MAP_FAILED){
+		*err = errno;
+		shm_unlink(name);
+		return(SCB_SHMEM);
+	}
+
+	close(fdshmem);
+
+    //Se ligan los punteros
+
+	ctx->ctrl = (buffer_control *)shmem;
+	ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
+	strncpy(ctx->name, name, TAMAX_MSGERROR);
+
+	   // se consigue la info actual  de ese espacio de memoria
+
+        printf("Antes del get info ");
+        
+	    int semlleno = 0;
+		int productores_nuevos = 0;
+		int consumidores_nuevos = 0;
+    	int semvacio = 0;
+    	int semcon_carrera = 0;
+	    buffer_control inf;
+	    errores scberr2;
+		
+		scberr2 = get_info_buffer(&name, &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+	    SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
+	
+	  printf("Antes del if : [%u]\n", inf.productores);
+	    
+	   if(&tipo ==1){
+		   productores_nuevos = inf.productores + 1;
+		   printf("en el  if : [%u]\n", inf.productores);
+		   ctx->ctrl->productores = productores_nuevos;
+	
+	   }
+	   else{   
+		   consumidores_nuevos = inf.consumidores +1;
+		    ctx->ctrl->productores = consumidores_nuevos;
+
+	   }
+
+
+	*err = 0;
+	return(SCB_OK);
+}
 
 //Función para obtener información del buffer
 
-errores scb_getInfo(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores,int *err)
+errores get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *err)
 {
 	int fdshmem = 0;
 	void *shmem = NULL;
@@ -157,6 +233,53 @@ errores scb_getInfo(char *name, buffer_control *inf, int *semlleno, int *semvaci
 }
 
 //Función para el manejo de errores 
+
+void check_error(errores err, int ret, char *msg)
+{
+	char *errat = NULL;
+	char errdesc[TAMAX_MSGERROR] = {'\0'};
+
+	switch(err){
+		case SCB_SHMEM:
+			errat = "Shared Memory";
+			/* TODO strerror_r(ret, errdesc, SCB_ERRORMSG_MAXSZ); */
+			strncpy(errdesc, strerror(ret), TAMAX_MSGERROR);
+			break;
+		case SCB_FTRUNC:
+			errat = "FTruncate";
+			/* TODO strerror_r(ret, errdesc, SCB_ERRORMSG_MAXSZ); */
+			strncpy(errdesc, strerror(ret), TAMAX_MSGERROR);
+			break;
+		case SCB_SEMPH:
+			errat = "Semaphore";
+			/* TODO strerror_r(ret, errdesc, SCB_ERRORMSG_MAXSZ); */
+			strncpy(errdesc, strerror(ret), TAMAX_MSGERROR);
+			break;
+		case SCB_MMAP:
+			errat = "mmap";
+			/* TODO strerror_r(ret, errdesc, SCB_ERRORMSG_MAXSZ); */
+			strncpy(errdesc, strerror(ret), TAMAX_MSGERROR);
+			break;
+		case SCB_LLENO:
+			errat = "SCB FULL";
+			strncpy(errdesc, "There is no space", TAMAX_MSGERROR);
+			break;
+		case SCB_VACIO:
+			errat = "SCB EMPTY";
+			strncpy(errdesc, "There are no elements", TAMAX_MSGERROR);
+			break;
+		case SCB_BLOQUEADO:
+			errat = "SCB BLOCKED";
+			strncpy(errdesc, "Access blocked (in use at operation side or full or empty. Try again)", TAMAX_MSGERROR);
+			break;
+		default:
+			errat = "Success";
+			strncpy(errdesc, "no error", TAMAX_MSGERROR);
+			break;
+	}
+
+	snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
+}
 
 
 

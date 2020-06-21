@@ -23,7 +23,8 @@ typedef struct _buffer_control{
 	sem_t vacio;
 	sem_t lleno;
 	sem_t con_carrera;
-    sem_t finalizar;
+    
+	uint16_t finalizar;
 
 	uint16_t cabeza;
 	uint16_t cola;
@@ -84,14 +85,20 @@ typedef enum{
 
 errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, buffer *ctx, int *err);
 
+//función para ligar procesos a un buffer 
+
+errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo);
+
 
 //función para obtener la información del buffer
 
-errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);
+errores get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera, int *err);
 
 //función para destruir el buffer
 
-errores destruir(char *name, int *err);
+errores destruir_buffer(char *name, int *err);
+
+
 
 
 //función para control de errores
