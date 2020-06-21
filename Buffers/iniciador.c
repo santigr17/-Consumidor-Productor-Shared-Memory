@@ -10,10 +10,10 @@ int main(int argc, char *argv[])
 {
 	int ret = 0;
     unsigned int cantidad = 0;
-	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
+	// char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
 	buffer ctx;
 	errores scberr1 = SCB_OK;
-	mensaje carta;
+	// mensaje carta;
 	if(argc != 3){
 		printf("Por favor indique nombre del buffer y cantidad de mensajes\n");
 		printf("Argumento 0: [%s]\n", argv[0]);
