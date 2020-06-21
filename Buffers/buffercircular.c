@@ -10,7 +10,7 @@
 #include <sys/mman.h>
 #include "buffercircular.h"
 
-enum day
+enum subscription
 {
 	NEW_CONSUMER,
 	NEW_PRODUCER,

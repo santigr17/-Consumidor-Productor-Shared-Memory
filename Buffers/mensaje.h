@@ -18,9 +18,8 @@ typedef struct _mensaje{
 }
 
 //Funcion para leer o escribir mensajes directamente en memoria con un src y un destino
-
 #include <string.h>
-void * copyElement(void *dst, const void *src)
+void * copyMessage(void *dst, const void *src)
 {
 	return(memcpy(dst, src, sizeof(mensaje)));
 }
