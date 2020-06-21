@@ -122,7 +122,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 
 //Función para ligar procesos al espacio de memoria del buffer
 
-errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
+errores ligar_buffer(buffer *ctx, char *name, int *err,int tipo)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
@@ -134,13 +134,6 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
     /*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
     //se busca la infor de ese buffer
     // se consigue la info actual  de ese espacio de memoria
-
-        printf("Antes del get info ");
-    
-		int productores_nuevos = 0;
-		int consumidores_nuevos = 0;
-
-
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
 
 
@@ -161,14 +154,28 @@ errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo)
 	}
 
 	//Se modifica estados de productores o consumidores
-
-		if(scberr != SCB_OK) return(scberr);
-		buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ|PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	if(scberr != SCB_OK) return(scberr);
+	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ|PROT_WRITE, MAP_SHARED, fdshmem, 0);
  		
-		  //decirle al puntero de productores que se sume 1 
-		productores_nuevos = scbInf.productores +1;
-		printf("Info nueva.: [%u]\n", productores_nuevos);
+	int productores_nuevos = scbInf.productores;
+		int consumidores_nuevos = scbInf.consumidores;
+
+    int comparar = 0;
+	//Si es mayor a 0 es productor (o sea 1), si no es consumidor
+	if(tipo>comparar){
+		//decirle al puntero de productores que se sume 1 
+		productores_nuevos = productores_nuevos +1;
+		
+	}
+	else{
+		//decirle al puntero de productores que se sume 1 
+		consumidores_nuevos = consumidores_nuevos +1;
+		
+	}
+
+		//se actualizan valores en los punteros del buffer
 		(*puntero).productores = productores_nuevos;
+		(*puntero).consumidores = consumidores_nuevos;  
 	 
 
 	close(fdshmem);

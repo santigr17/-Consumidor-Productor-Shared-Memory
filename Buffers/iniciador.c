@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     //Se prueba la info del buffer creado:
 
-      int err = 0;
+        int err = 0;
 	    int semlleno = 0;
     	int semvacio = 0;
     	int semcon_carrera = 0;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	printf("Consumidores........: [%u]\n", inf.consumidores);
 
 	printf("Semaforos..........: Lleno [%d] | Vacio [%d] | Con_carrera [%d]\n", semlleno, semvacio, semcon_carrera);
-    sleep(10);
+    sleep(2);
     }
 
 

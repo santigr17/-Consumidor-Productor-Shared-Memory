@@ -79,7 +79,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 
 //función para ligar procesos a un buffer 
 
-errores ligar_buffer(buffer *ctx, char *name, int *err,int *tipo);
+errores ligar_buffer(buffer *ctx, char *name, int *err,int tipo);
 
 
 //función para obtener la información del buffer
