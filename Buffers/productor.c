@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
     
 	
     while(1){
+		system("clear");
         printf("Soy un productor corriendo \n");
+		sleep(1);
+
     }
 }
