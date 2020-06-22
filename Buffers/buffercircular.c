@@ -63,7 +63,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 		return (SCB_MMAP);
 	}
 
-	close(fdshmem);
+	//close(fdshmem);
 
 	//Se asignan los punteros
 
@@ -87,6 +87,10 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
     
     Si falla se usa unlink para devolver la mem
     */
+	// si se puede bloquear, entra al if
+	// if(block == BLOCK){
+	// 	//se intenta tomar control de
+	// }
 
 	if (sem_init(&(ctx->ctrl->vacio), 1, totalElementos) == -1)
 	{
@@ -157,25 +161,32 @@ errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
 
 	//Se modifica estados de productores o consumidores
 	if (scberr != SCB_OK)
+	{
 		return (scberr);
+	}
 	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
 
 	int productores_nuevos = scbInf.productores;
 	int consumidores_nuevos = scbInf.consumidores;
+	printf("Se va a incrementar el valor consumer/producer  actuales, prod %d, con %d\n", productores_nuevos, consumidores_nuevos);
 
 	//Si es mayor a 0 es productor (o sea 1), si no es consumidor
 	if (tipo == NEW_CONSUMER)
 	{
+		printf("Se agrega consumidor \n");
+
 		//decirle al puntero de productores que se sume 1
 		consumidores_nuevos = consumidores_nuevos + 1;
 	}
 	else if (tipo == NEW_PRODUCER)
 	{
 		//decirle al puntero de productores que se sume 1
+		printf("Se agrega productor \n");
 		productores_nuevos = productores_nuevos + 1;
 	}
 	else
 	{
+		printf("No se agrega productor ni consumidor \n");
 		// TODO: contemplar caso
 	}
 
@@ -183,9 +194,15 @@ errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
 	(*puntero).productores = productores_nuevos;
 	(*puntero).consumidores = consumidores_nuevos;
 
+	printf("LLamando a mmap de ligar_buffer, cantidad solicitada %d  al file descriptor %d \n", szshmem, fdshmem);
+
 	shmem = mmap(NULL, szshmem, PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	printf("LLamando a mmap de ligar_buffer, shmem retornado %d \n",shmem);
+
 	if (shmem == MAP_FAILED)
 	{
+		printf("Error en mmap \n");
+
 		*err = errno;
 		shm_unlink(name);
 		return (SCB_SHMEM);
@@ -194,10 +211,14 @@ errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
 	close(fdshmem);
 
 	//Se ligan los punteros
-
-	ctx->ctrl = (buffer_control *)shmem;
-	ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
-	strncpy(ctx->name, name, TAMAX_MSGERROR);
+	// ctx->ctrl = (buffer_control *)shmem;
+	// printf("Context: %p  \n",(ctx->ctrl));
+	// ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
+	// strncpy(ctx->name, name, TAMAX_MSGERROR);
+	buffer test;
+	memcpy(&test, shmem, sizeof(buffer));
+	//printf(" Buffer circular: Ligar %c",(ctx->name));
+	printf(" Buffer circular: Ligar %p , resultado de shmem %d\n", (test.ctrl), shmem);
 
 	*err = 0;
 	return (SCB_OK);
@@ -286,4 +307,91 @@ void check_error(errores err, int ret, char *msg)
 	}
 
 	snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
+}
+
+// Intentar bloquear el recurso para hacer un uso de forma segura
+errores request_sem(buffer *ctx, bloqueo block, int *err)
+{
+	printf(" Buffer circular: Request Context: %p  \n", (ctx->ctrl));
+	if (ctx->ctrl == NULL)
+	{
+		return SCB_SEMPH;
+	}
+	// si se puede bloquear, entra al if
+	if (block == BLOCK)
+	{
+		//se intenta tomar control de
+		printf("ctx->ctrl->lleno\n");
+		if (sem_wait(&(ctx->ctrl->lleno)) == -1)
+		{
+			*err = errno;
+			return (SCB_SEMPH);
+		}
+		printf("ctx->ctrl->vacio\n");
+
+		if (sem_wait(&(ctx->ctrl->vacio)) == -1)
+		{
+			*err = errno;
+			sem_post(&(ctx->ctrl->lleno));
+			return (SCB_SEMPH);
+		}
+		printf("ctx->ctrl->con_carrera\n");
+
+		if (sem_wait(&(ctx->ctrl->con_carrera)) == -1)
+		{
+			*err = errno;
+			sem_post(&(ctx->ctrl->lleno));
+			sem_post(&(ctx->ctrl->vacio));
+			return (SCB_SEMPH);
+		}
+	}
+	else
+	{
+		if (sem_post(&(ctx->ctrl->vacio)) == -1)
+		{
+			*err = errno;
+			return (SCB_SEMPH);
+		}
+
+		if (sem_post(&(ctx->ctrl->lleno)) == -1)
+		{
+			*err = errno;
+			sem_wait(&(ctx->ctrl->vacio));
+			return (SCB_SEMPH);
+		}
+
+		if (sem_post(&(ctx->ctrl->con_carrera)) == -1)
+		{
+			*err = errno;
+			sem_wait(&(ctx->ctrl->lleno));
+			sem_wait(&(ctx->ctrl->vacio));
+			return (SCB_SEMPH);
+		}
+	}
+	*err = 0;
+	return (SCB_OK);
+}
+
+errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), errores puedo_enviar, int *err)
+{
+	errores ret = SCB_OK;
+	if (puedo_enviar == SCB_OK)
+	{
+		// si alcanza el total de cajas
+		if (ctx->ctrl->qtd == ctx->ctrl->capacidad)
+		{
+			ret = SCB_LLENO;
+		}
+		else
+		{
+			copyMessage(ctx->mensajes + (ctx->ctrl->cabeza * ctx->ctrl->largo_mensaje), mensaje);
+			ctx->ctrl->cabeza = (ctx->ctrl->cabeza + 1) % ctx->ctrl->capacidad;
+			ctx->ctrl->qtd++;
+		}
+	}
+	else
+	{
+		ret = SCB_BLOQUEADO;
+	}
+	return ret;
 }

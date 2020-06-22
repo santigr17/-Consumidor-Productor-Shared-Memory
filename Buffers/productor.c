@@ -34,16 +34,19 @@ int main(int argc, char *argv[])
 
 	check_error(scberr, ret, scberrormsgcreate);
 	printf("%s", scberrormsgcreate);
+	scberr = ligar_buffer(&ctx, argv[1], &ret, 1);
 
 	printf("Ligando productor con el buffer: [%s]\n", argv[1]);
 
 	//SE LIGA PRODUCTOR CON BUFFER USANDO EL ARGUMENTO PASADO POR CONSOLA
-	scberr = ligar_buffer(&ctx, argv[1], &ret, 1);
 	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr, ret, 1);
 	mensaje msj;
 	while (1)
 	{
+
 		system("clear");
+		printf("Request Context: %p  \n",&(ctx.ctrl));
+		scberr = ligar_buffer(&ctx, argv[1], &ret, 2);
 		generate_message(&msj);
 		struct tm *info;
 		info = localtime(&(msj.time));
@@ -51,6 +54,22 @@ int main(int argc, char *argv[])
 			   msj.pid,
 			   msj.numero_magico,
 			   asctime(info));
+
+		// intento bloquear
+		int err;
+		printf("Soy un productor  quiero bloquear\n");
+		errores block_resultado = request_sem(&ctx, BLOCK, &err);
+		if (block_resultado != SCB_OK)
+		{
+			printf("Soy un productor que no pude bloquear\n");
+			return -1;
+		}
+		else
+		{
+			printf("Soy un productor que sí pude bloquear\n");
+			// intento escribir
+		}
+		// intento desbloquear
 		sleep(1);
 	}
 }

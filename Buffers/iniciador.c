@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 	printf("Productores.........: [%u]\n", inf.productores);
 	printf("Consumidores........: [%u]\n", inf.consumidores);
 	printf("Semaforos..........: Lleno [%d] | Vacio [%d] | Con_carrera [%d]\n", semlleno, semvacio, semcon_carrera);
+	printf("Request Context: %p  \n",&(ctx.ctrl));
     sleep(2);
     }
 

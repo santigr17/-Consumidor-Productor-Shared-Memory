@@ -69,8 +69,8 @@ typedef enum{
 //enum para bloquear el buffer
 
 typedef enum{
-	SCB_BLOQUEAR = 0,
-	SCB_DESBLOQUEAR
+	BLOCK = 0,
+	UNBLOCK
 }bloqueo;
 
 //función para crear un buffer compartido nuevo
@@ -97,7 +97,7 @@ errores destruir_buffer(char *name, int *err);
 
 void check_error(errores err, int ret, char *msg);
 
-
-
-
+// solicitar condición de carrera
+errores request_sem(buffer *ctx, bloqueo block, int *err);
+errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), errores puedo_enviar, int *err);
 #endif
