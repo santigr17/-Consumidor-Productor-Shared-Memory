@@ -51,22 +51,14 @@ int main(int argc, char *argv[])
 		generate_message(&msj);
 		struct tm *info;
 		info = localtime(&(msj.time));
-		printf("Soy un productor corriendo  PID: %i, Magic: %i, Date UTC: %s",
+		printf("Soy un productor corriendo  PID: %i,Generé el número magico: %i, a las : %s",
 			   msj.pid,
 			   msj.numero_magico,
 			   asctime(info));
 
-		printf("para mostrar que se está jalando el nombre del ctx :\n");
-    	char *x ;
-		x = ctx.name;
-		printf("ctrl..............: [%s]\n", x);
 
 		//Se intenta escribir
 		scberr = put_msg(&ctx, &msj, copyMessage, UNBLOCK, &ret);
-
-
-
-		
-		sleep(12);
+		sleep(5);
 	}
 }
