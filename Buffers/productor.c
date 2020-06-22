@@ -47,11 +47,13 @@ int main(int argc, char *argv[])
 	{
 		buffer ctx;
 		system("clear");
+		//se refresca el buffer 
 		scberr = get_buffer( &ctx,argv[1], &err);
+		//se crea un mensaje 
 		generate_message(&msj);
 		struct tm *info;
 		info = localtime(&(msj.time));
-		printf("Soy un productor corriendo  PID: %i,Generé el número magico: %i, a las : %s",
+		printf("Soy un productor corriendo  PID: %i,Generé el número mágico: %i, a las : %s",
 			   msj.pid,
 			   msj.numero_magico,
 			   asctime(info));

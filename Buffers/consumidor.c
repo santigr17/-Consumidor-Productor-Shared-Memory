@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
         mensaje msj;
 		buffer ctx;
 		system("clear");
+		// se pide el buffer a memoria compartida
 		scberr = get_buffer( &ctx,argv[1], &err);
 
 		//Se intenta leer
@@ -42,9 +43,7 @@ int main(int argc, char *argv[])
 	    printf("Escrito por:................: [%u]\n", msj.pid);
 		struct tm *info;
 		info = localtime(&(msj.time));
-	    printf("A las: .................: [%lu]\n", asctime(info) );
-
-		
+	    printf("A las: .................: [%s]\n", asctime(info) );
 		sleep(4);
 	}
 }
