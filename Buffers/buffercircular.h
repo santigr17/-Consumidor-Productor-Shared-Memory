@@ -77,9 +77,12 @@ typedef enum{
 
 errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, buffer *ctx, int *err);
 
-//función para ligar procesos a un buffer 
+//función para aumentar número de productores
 
-errores ligar_buffer(buffer *ctx, char *name, int *err,int tipo);
+errores add_productor(buffer *ctx, char *name, int *err);
+
+//función para aumentar número de consumidores
+errores add_consumidor(buffer *ctx, char *name, int *err);
 
 
 //función para obtener la información del buffer
@@ -90,14 +93,23 @@ errores get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *sem
 
 errores destruir_buffer(char *name, int *err);
 
+//función para obtener buffer de memoria compartida
 
+errores get_buffer(buffer *ctx, char *name, int *err);
 
 
 //función para control de errores
 
 void check_error(errores err, int ret, char *msg);
 
-// solicitar condición de carrera
+// solicitar condición de carrera en prueba
 errores request_sem(buffer *ctx, bloqueo block, int *err);
-errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), errores puedo_enviar, int *err);
+
+//funcion para poner mensaje en el buffer
+errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err);
+
+//funcion para leer mensaje en el buffer
+
+errores get_msg(buffer *ctx, void *mensaje,  void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err);
+
 #endif

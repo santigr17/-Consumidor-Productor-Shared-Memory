@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	printf("Capaciad total......: [%u]\n", inf.capacidad);
 	printf("Productores.........: [%u]\n", inf.productores);
 	printf("Consumidores........: [%u]\n", inf.consumidores);
-	printf("Semaforos..........: Lleno [%d] | Vacio [%d] | Con_carrera [%d]\n", semlleno, semvacio, semcon_carrera);
+	printf("Semaforos..........: Espacios Ocupados [%d] | Espacios Vacios [%d]\n", semlleno, semvacio);
 	printf("Request Context: %p  \n",&(ctx.ctrl));
     sleep(2);
     }

@@ -129,13 +129,13 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 	return (SCB_OK);
 }
 
-//Función para ligar procesos al espacio de memoria del buffer
+//Función para aumentar número de productores en el buffer
 /**
  * TIPO 0 : Consumidor inical
  * TIPO 1 : Productor inicial
  * TIPO 2 : Consumidor / Productos ya creado
 */
-errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
+errores add_productor(buffer *ctx, char *name, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
@@ -148,10 +148,7 @@ errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
 	//se busca la infor de ese buffer
 	// se consigue la info actual  de ese espacio de memoria
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-
-	//se calcula lo grande del largo de mem
-	szshmem = sizeof(buffer_control) + (scbInf.capacidad * scbInf.largo_mensaje);
-
+    //se crea el file descriptor con mmap
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fdshmem == -1)
 	{
@@ -159,7 +156,7 @@ errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
 		return (SCB_SHMEM);
 	}
 
-	//Se modifica estados de productores o consumidores
+	//Se modifica estados de productores
 	if (scberr != SCB_OK)
 	{
 		return (scberr);
@@ -167,62 +164,56 @@ errores ligar_buffer(buffer *ctx, char *name, int *err, int tipo)
 	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
 
 	int productores_nuevos = scbInf.productores;
-	int consumidores_nuevos = scbInf.consumidores;
-	printf("Se va a incrementar el valor consumer/producer  actuales, prod %d, con %d\n", productores_nuevos, consumidores_nuevos);
-
-	//Si es mayor a 0 es productor (o sea 1), si no es consumidor
-	if (tipo == NEW_CONSUMER)
-	{
-		printf("Se agrega consumidor \n");
-
-		//decirle al puntero de productores que se sume 1
-		consumidores_nuevos = consumidores_nuevos + 1;
-	}
-	else if (tipo == NEW_PRODUCER)
-	{
-		//decirle al puntero de productores que se sume 1
-		printf("Se agrega productor \n");
-		productores_nuevos = productores_nuevos + 1;
-	}
-	else
-	{
-		printf("No se agrega productor ni consumidor \n");
-		// TODO: contemplar caso
-	}
-
-	//se actualizan valores en los punteros del buffer
+	productores_nuevos = productores_nuevos + 1;
 	(*puntero).productores = productores_nuevos;
-	(*puntero).consumidores = consumidores_nuevos;
 
-	printf("LLamando a mmap de ligar_buffer, cantidad solicitada %d  al file descriptor %d \n", szshmem, fdshmem);
+	*err = 0;
 
-	shmem = mmap(NULL, szshmem, PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
-	printf("LLamando a mmap de ligar_buffer, shmem retornado %d \n",shmem);
+	close(fdshmem);
+	return (SCB_OK);
+}
 
-	if (shmem == MAP_FAILED)
+
+//Función para aumentar el número de consumidores en el buffer 
+
+errores add_consumidor(buffer *ctx, char *name, int *err)
+{
+	int fdshmem = 0;
+	int sf = 0, se = 0, sb = 0;
+	size_t szshmem = 0;
+	void *shmem = NULL;
+	buffer_control scbInf;
+	errores scberr;
+
+	/*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+	//se busca la infor de ese buffer
+	// se consigue la info actual  de ese espacio de memoria
+	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
+    //se crea el file descriptor con mmap
+	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
+	if (fdshmem == -1)
 	{
-		printf("Error en mmap \n");
-
 		*err = errno;
-		shm_unlink(name);
 		return (SCB_SHMEM);
 	}
 
-	close(fdshmem);
+	//Se modifica estados de productores
+	if (scberr != SCB_OK)
+	{
+		return (scberr);
+	}
+	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
 
-	//Se ligan los punteros
-	// ctx->ctrl = (buffer_control *)shmem;
-	// printf("Context: %p  \n",(ctx->ctrl));
-	// ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
-	// strncpy(ctx->name, name, TAMAX_MSGERROR);
-	buffer test;
-	memcpy(&test, shmem, sizeof(buffer));
-	//printf(" Buffer circular: Ligar %c",(ctx->name));
-	printf(" Buffer circular: Ligar %p , resultado de shmem %d\n", (test.ctrl), shmem);
+	int consumidores_nuevos = scbInf.consumidores;
+	consumidores_nuevos = consumidores_nuevos + 1;
+	(*puntero).consumidores = consumidores_nuevos;
 
 	*err = 0;
+
+	close(fdshmem);
 	return (SCB_OK);
 }
+
 
 //Función para obtener información del buffer
 
@@ -309,10 +300,50 @@ void check_error(errores err, int ret, char *msg)
 	snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
 }
 
-// Intentar bloquear el recurso para hacer un uso de forma segura
+//función que retorna un buffer de mem compartida
+
+errores get_buffer(buffer *ctx, char *name, int *err)
+{
+	int fdshmem = 0;
+	int sf = 0, se = 0, sb = 0;
+	size_t szshmem = 0;
+	void *shmem = NULL;
+	buffer_control scbInf;
+	errores scberr;
+
+	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
+	if(scberr != SCB_OK) return(scberr);
+
+	szshmem = sizeof(buffer_control) + (scbInf.capacidad * scbInf.largo_mensaje);
+
+	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
+	if(fdshmem == -1){
+		*err = errno;
+		return(SCB_SHMEM);
+	}
+
+	shmem = mmap(NULL, szshmem, PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	if(shmem == MAP_FAILED){
+		*err = errno;
+		shm_unlink(name);
+		return(SCB_SHMEM);
+	}
+
+	close(fdshmem);
+
+	ctx->ctrl = (buffer_control *)shmem;
+	ctx->mensajes = (void *)(shmem + sizeof(buffer_control));
+	strncpy(ctx->name, name, TAMAX_NOMBRE);
+
+	*err = 0;
+	return(SCB_OK);
+}
+
+
+// Intentar bloquear el recurso para hacer un uso de forma segura test
 errores request_sem(buffer *ctx, bloqueo block, int *err)
 {
-	printf(" Buffer circular: Request Context: %p  \n", (ctx->ctrl));
+	//printf(" Buffer circular: Request Context: %p  \n", (ctx->ctrl));
 	if (ctx->ctrl == NULL)
 	{
 		return SCB_SEMPH;
@@ -321,9 +352,10 @@ errores request_sem(buffer *ctx, bloqueo block, int *err)
 	if (block == BLOCK)
 	{
 		//se intenta tomar control de
-		printf("ctx->ctrl->lleno\n");
+		printf("se hace wait de lleno\n");
 		if (sem_wait(&(ctx->ctrl->lleno)) == -1)
 		{
+			printf("se entra primer if\n");
 			*err = errno;
 			return (SCB_SEMPH);
 		}
@@ -372,26 +404,80 @@ errores request_sem(buffer *ctx, bloqueo block, int *err)
 	return (SCB_OK);
 }
 
-errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), errores puedo_enviar, int *err)
+//función que escribe 1 mensaje en el buffer
+errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err)
+
+{
+errores ret = SCB_OK;
+
+	if(block == UNBLOCK){
+		if(sem_trywait(&(ctx->ctrl->vacio)) == -1)
+			return(BLOCK);
+	}else{
+		if(sem_wait(&(ctx->ctrl->vacio)) == -1){
+			*err = errno;
+			return(SCB_SEMPH);
+		}
+	}
+
+	if(sem_wait(&(ctx->ctrl->con_carrera)) == -1){
+		*err = errno;
+		sem_post(&(ctx->ctrl->lleno));
+		return(SCB_SEMPH);
+	}
+
+	if(ctx->ctrl->qtd == ctx->ctrl->capacidad)
+		ret = SCB_LLENO;
+	else{
+		copyMessage(ctx->mensajes + (ctx->ctrl->cabeza * ctx->ctrl->largo_mensaje), mensaje);
+
+		ctx->ctrl->cabeza = (ctx->ctrl->cabeza + 1) % ctx->ctrl->capacidad;
+		ctx->ctrl->qtd++;
+	}
+
+	sem_post(&(ctx->ctrl->con_carrera));
+	sem_post(&(ctx->ctrl->lleno));
+
+	*err = 0;
+	return(ret);
+}
+
+// función que lee un mensaje , usada para consumidor
+
+errores get_msg(buffer *ctx, void *mensaje,  void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err)
 {
 	errores ret = SCB_OK;
-	if (puedo_enviar == SCB_OK)
-	{
-		// si alcanza el total de cajas
-		if (ctx->ctrl->qtd == ctx->ctrl->capacidad)
-		{
-			ret = SCB_LLENO;
-		}
-		else
-		{
-			copyMessage(ctx->mensajes + (ctx->ctrl->cabeza * ctx->ctrl->largo_mensaje), mensaje);
-			ctx->ctrl->cabeza = (ctx->ctrl->cabeza + 1) % ctx->ctrl->capacidad;
-			ctx->ctrl->qtd++;
+
+	if(block == UNBLOCK){
+		if(sem_trywait(&(ctx->ctrl->lleno)) == -1)
+			return(SCB_BLOQUEADO);
+	}else{
+		if(sem_wait(&(ctx->ctrl->lleno)) == -1){
+			*err = errno;
+			return(SCB_SEMPH);
 		}
 	}
-	else
-	{
-		ret = SCB_BLOQUEADO;
+
+	if(sem_wait(&(ctx->ctrl->con_carrera)) == -1){
+		*err = errno;
+		sem_post(&(ctx->ctrl->lleno));
+		return(SCB_SEMPH);
 	}
-	return ret;
+
+	if(ctx->ctrl->qtd == 0)
+		ret = SCB_VACIO;
+	else{
+		copyMessage(mensaje, ctx->mensajes + (ctx->ctrl->cola * ctx->ctrl->largo_mensaje));
+
+		ctx->ctrl->cola = (ctx->ctrl->cola + 1) % ctx->ctrl->capacidad;
+		ctx->ctrl->qtd--;
+	}
+	//Se libera condicion de carrera y se disminuye los vacios
+	sem_post(&(ctx->ctrl->con_carrera));
+	sem_post(&(ctx->ctrl->vacio));
+
+	*err = 0;
+	return(ret);
 }
+
+
