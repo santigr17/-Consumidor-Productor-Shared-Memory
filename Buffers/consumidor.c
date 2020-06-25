@@ -108,13 +108,12 @@ int main(int argc, char *argv[])
 		scberr = get_buffer( &ctx,argv[1], &err);
 		//Se intenta leer
 		scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
-		printf("Mi modo es: [%s]\n", argv[2]);
-        printf("Mi buffer es: [%s]\n", argv[1]);
-	    printf("Numero mágico: ..............: [%u]\n", msj.numero_magico);
-	    printf("Escrito por:................: [%u]\n", msj.pid);
+		printw("Mi buffer es: [%s]\n", argv[1]);
+		printw("Numero mágico: [%u]\n", msj.numero_magico);
+		printw("Escrito por: [%u]\n", msj.pid);
 		struct tm *info;
 		info = localtime(&(msj.time));
-	    printf("A las: .................: [%s]\n", asctime(info) );
+	   	printw("A las:[%s]\n", asctime(info) );
 		sleep(4);
 		}
 
