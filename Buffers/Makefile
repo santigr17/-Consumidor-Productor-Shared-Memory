@@ -35,9 +35,10 @@ sample: lbuffercircular
 	$(CC) -o iniciador iniciador.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
 	$(CC) -o productor productor.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
 	$(CC) -o consumidor  consumidor.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
+	$(CC) -o finalizador  finalizador.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
 
 
 clean:
 	@echo
 	@echo "=== Limpiando datos =============="
-	-$(RM) iniciador productor consumidor libbuffercircular.a *.o core
+	-$(RM) iniciador productor consumidor finalizador libbuffercircular.a *.o core

@@ -66,12 +66,33 @@ int main(int argc, char *argv[])
 
 	if ( !strcmp(argv[2], "manual") ){
 		while(1){
-			 if (kbhit()) {
-            printw("Se presionó una tecla ! y fue la : %d\n", getch());
-            refresh();
+
+			mensaje msj;
+			buffer ctx;
+	     	system("clear");
+		    // se pide el buffer a memoria compartida
+	    	scberr = get_buffer( &ctx,argv[1], &err);
+			if (kbhit()) {
+			int enter = getch();
+			
+
+			if(enter == 10){
+					
+					scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
+    			    printw("Mi buffer es: [%s]\n", argv[1]);
+					printw("Numero mágico: [%u]\n", msj.numero_magico);
+					printw("Escrito por: [%u]\n", msj.pid);
+					struct tm *info;
+					info = localtime(&(msj.time));
+	   				printw("A las:[%s]\n", asctime(info) );
+                    sleep(4);
+			}
+            
+            
              } else {
-            printw("Esperando tecla ...\n");
-            refresh();
+           
+			printw("Por favor presionar ENTER para intentar consumir mensaje \n");
+           
             sleep(2);
             }
 		}
@@ -85,7 +106,6 @@ int main(int argc, char *argv[])
 		system("clear");
 		// se pide el buffer a memoria compartida
 		scberr = get_buffer( &ctx,argv[1], &err);
-
 		//Se intenta leer
 		scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
 		printf("Mi modo es: [%s]\n", argv[2]);
