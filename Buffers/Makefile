@@ -1,5 +1,5 @@
 # C flags:
-CFLAGS_OPTIMIZATION = -g
+CFLAGS_OPTIMIZATION = -g 
 #CFLAGS_OPTIMIZATION = -O3
 CFLAGS_VERSION = -std=c11
 CFLAGS_WARNINGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-but-set-parameter
@@ -15,8 +15,8 @@ RANLIB = ranlib
 CPPCHECK = cppcheck
 
 INCLUDEPATH = -I./
-LIBS = -lbuffercircular -lpthread -lrt
-LIBPATH = -L./
+LIBS = -lbuffercircular -lpthread -lrt -lncurses
+LIBPATH = -L./ 
 
 
 ##Se crea la biblioteca 
@@ -34,7 +34,7 @@ sample: lbuffercircular
 	@echo "=== Compilando =============="
 	$(CC) -o iniciador iniciador.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
 	$(CC) -o productor productor.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
-	$(CC) -o consumidor consumidor.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
+	$(CC) -o consumidor  consumidor.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
 
 
 clean:
