@@ -84,6 +84,14 @@ errores add_productor(buffer *ctx, char *name, int *err);
 //función para aumentar número de consumidores
 errores add_consumidor(buffer *ctx, char *name, int *err);
 
+//función para disminuir número de productores
+
+errores remove_productor(buffer *ctx, char *name, int *err);
+
+//función para disminuir número de consumidores
+errores remove_consumidor(buffer *ctx, char *name, int *err);
+
+
 
 //función para obtener la información del buffer
 
