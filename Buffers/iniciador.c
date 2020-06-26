@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
 	// se printea
 	printf("Nombre: [%s]\n", argv[1]);
+	printf("Finalizador.........: [%u]",inf.finalizar);
 	printf("Cabeza..............: [%u]\n", inf.cabeza);
 	printf("COLA................: [%u]\n", inf.cola);
 	printf("Qtd.................: [%u]\n", inf.qtd);

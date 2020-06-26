@@ -22,7 +22,16 @@ int kbhit(void)
     }
 }
 
+//Función especial para finalizar
+void finalizar(){
 
+}
+
+
+//Función para finalizar con número mágico
+void finalizar_magico(){
+	
+}
 
 int main(int argc, char *argv[])
 {
@@ -74,7 +83,25 @@ int main(int argc, char *argv[])
 	    	scberr = get_buffer( &ctx,argv[1], &err);
 			if (kbhit()) {
 			int enter = getch();
-			
+			//se pide info del controller
+
+			  int err = 0;
+	   		  int semlleno = 0;
+    		  int semvacio = 0;
+    		  int semcon_carrera = 0;
+	   		 buffer_control inf;
+	        errores scberr2;
+
+  		  	/* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+   		 	 scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+	     	//Se verifica algun error
+	    	 SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
+			printf("Finalizador.........: [%u]\n",inf.finalizar);
+
+
+
+			//Se tiene que verificar finalizador
+
 
 			if(enter == 10){
 					
@@ -101,6 +128,25 @@ int main(int argc, char *argv[])
 
 		while (1)
 		{
+		//se pide info del controller
+
+			  int err = 0;
+	   		  int semlleno = 0;
+    		  int semvacio = 0;
+    		  int semcon_carrera = 0;
+	   		 buffer_control inf;
+	        errores scberr2;
+
+  		  /* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+   		  scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+	     //Se verifica algun error
+	     SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
+			printf("Finalizador.........: [%u]\n",inf.finalizar);
+			
+
+
+			//Se tiene que verificar finalizador
+
         mensaje msj;
 		buffer ctx;
 		system("clear");

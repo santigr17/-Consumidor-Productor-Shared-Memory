@@ -23,6 +23,13 @@ void generate_message(mensaje *msj)
 	msj->pid = pid;
 	msj->time = time_created;
 }
+//Función especial para finalizar
+void finalizar(){
+
+}
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -45,6 +52,24 @@ int main(int argc, char *argv[])
 	mensaje msj;
 	while (1)
 	{
+		//se pide info del controller
+
+			  int err = 0;
+	   		  int semlleno = 0;
+    		  int semvacio = 0;
+    		  int semcon_carrera = 0;
+	   		 buffer_control inf;
+	        errores scberr2;
+
+  		  /* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+   		  scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+	     //Se verifica algun error
+	     SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
+		printf("Finalizador.........: [%u]\n",inf.finalizar);
+
+
+			//Se tiene que verificar finalizador
+
 		buffer ctx;
 		system("clear");
 		//se refresca el buffer 
