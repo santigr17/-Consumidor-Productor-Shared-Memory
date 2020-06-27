@@ -41,11 +41,11 @@ int main(int argc, char *argv[])
 	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
 	// se printea
 	printf("Nombre: [%s]\n", argv[1]);
-	printf("Finalizador.........: [%u]",inf.finalizar);
+	printf("Finalizador.........: [%u]\n",inf.finalizar);
 	printf("Cabeza..............: [%u]\n", inf.cabeza);
 	printf("COLA................: [%u]\n", inf.cola);
 	printf("Qtd.................: [%u]\n", inf.qtd);
-	printf("Espera máxima.................: [%u]\n", inf.maxEspera);
+	printf("Espera máxima.......: [%u]\n", inf.maxEspera);
 	printf("Capaciad total......: [%u]\n", inf.capacidad);
 	printf("Productores.........: [%u]\n", inf.productores);
 	printf("Consumidores........: [%u]\n", inf.consumidores);

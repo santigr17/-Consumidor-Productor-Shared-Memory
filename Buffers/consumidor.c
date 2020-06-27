@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	scberr = get_buffer(&ctx, argv[1], &err);
 
 	//Funciones para la captura de teclas
-	initscr();
+	WINDOW *win = initscr();
 	cbreak();
 	noecho();
 	nodelay(stdscr, TRUE);
@@ -100,7 +100,6 @@ int main(int argc, char *argv[])
 
 			mensaje msj;
 			buffer ctx;
-			system("clear");
 			// se pide el buffer a memoria compartida
 			scberr = get_buffer(&ctx, argv[1], &err);
 			if (kbhit())
@@ -131,7 +130,7 @@ int main(int argc, char *argv[])
 				{
 
 					scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
-					printw("Mi buffer es: %s \n\r", argv[1]);
+					printw("\rMi buffer es: %s \n\r", argv[1]);
 					printw("Numero mágico: %u \n\r", msj.numero_magico);
 					printw("Escrito por: %u \n\r", msj.pid);
 					struct tm *info;
@@ -152,6 +151,7 @@ int main(int argc, char *argv[])
 
 				sleep(2);
 			}
+			system("clear");
 		}
 	}
 	else if (!strcmp(argv[2], "automatico"))
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 			scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
 			//Se verifica algun error
 			SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
-			printf("Finalizador.........: [%u]\n", inf.finalizar);
+			printf("Finalizador.........: [%u]\n\r", inf.finalizar);
 
 			//Se tiene que verificar finalizador
 			if (inf.finalizar)

@@ -139,7 +139,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
  * TIPO 1 : Productor inicial
  * TIPO 2 : Consumidor / Productos ya creado
 */
-errores add_productor(buffer *ctx, char *name,int espera, int *err)
+errores add_productor(buffer *ctx, char *name, int espera, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
@@ -152,7 +152,7 @@ errores add_productor(buffer *ctx, char *name,int espera, int *err)
 	//se busca la infor de ese buffer
 	// se consigue la info actual  de ese espacio de memoria
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-    //se crea el file descriptor con mmap
+	//se crea el file descriptor con mmap
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fdshmem == -1)
 	{
@@ -171,17 +171,16 @@ errores add_productor(buffer *ctx, char *name,int espera, int *err)
 	productores_nuevos = productores_nuevos + 1;
 	(*puntero).productores = productores_nuevos;
 	int maxEspera = scbInf.maxEspera;
-	if(maxEspera <  espera){
-		(*puntero).maxEspera = espera;
-	}
+	// if(maxEspera <  espera){
+	// }
+	(*puntero).maxEspera += espera;
 	*err = 0;
 
 	close(fdshmem);
 	return (SCB_OK);
 }
 
-
-//Función para aumentar el número de consumidores en el buffer 
+//Función para aumentar el número de consumidores en el buffer
 
 errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
 {
@@ -196,7 +195,7 @@ errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
 	//se busca la infor de ese buffer
 	// se consigue la info actual  de ese espacio de memoria
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-    //se crea el file descriptor con mmap
+	//se crea el file descriptor con mmap
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fdshmem == -1)
 	{
@@ -217,9 +216,9 @@ errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
 
 	*err = 0;
 	int maxEspera = scbInf.maxEspera;
-	if(maxEspera <  espera){
-		(*puntero).maxEspera = espera;
-	}
+	// if(maxEspera <  espera){
+	// }
+	(*puntero).maxEspera += espera;
 	close(fdshmem);
 	return (SCB_OK);
 }
@@ -238,7 +237,7 @@ errores remove_productor(buffer *ctx, char *name, int *err)
 	//se busca la infor de ese buffer
 	// se consigue la info actual  de ese espacio de memoria
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-    //se crea el file descriptor con mmap
+	//se crea el file descriptor con mmap
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fdshmem == -1)
 	{
@@ -263,8 +262,7 @@ errores remove_productor(buffer *ctx, char *name, int *err)
 	return (SCB_OK);
 }
 
-
-//Función para disminuir el número de consumidores en el buffer 
+//Función para disminuir el número de consumidores en el buffer
 
 errores remove_consumidor(buffer *ctx, char *name, int *err)
 {
@@ -279,7 +277,7 @@ errores remove_consumidor(buffer *ctx, char *name, int *err)
 	//se busca la infor de ese buffer
 	// se consigue la info actual  de ese espacio de memoria
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-    //se crea el file descriptor con mmap
+	//se crea el file descriptor con mmap
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fdshmem == -1)
 	{
@@ -303,8 +301,6 @@ errores remove_consumidor(buffer *ctx, char *name, int *err)
 	close(fdshmem);
 	return (SCB_OK);
 }
-
-
 
 //Función para obtener información del buffer
 
@@ -387,7 +383,7 @@ void check_error(errores err, int ret, char *msg)
 		strncpy(errdesc, "no error", TAMAX_MSGERROR);
 		break;
 	}
-	if(errat=="Success")
+	if (errat == "Success")
 		snprintf(msg, TAMAX_MSGERROR, "\n");
 	else
 		snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
@@ -405,21 +401,24 @@ errores get_buffer(buffer *ctx, char *name, int *err)
 	errores scberr;
 
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-	if(scberr != SCB_OK) return(scberr);
+	if (scberr != SCB_OK)
+		return (scberr);
 
 	szshmem = sizeof(buffer_control) + (scbInf.capacidad * scbInf.largo_mensaje);
 
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
-	if(fdshmem == -1){
+	if (fdshmem == -1)
+	{
 		*err = errno;
-		return(SCB_SHMEM);
+		return (SCB_SHMEM);
 	}
 
 	shmem = mmap(NULL, szshmem, PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
-	if(shmem == MAP_FAILED){
+	if (shmem == MAP_FAILED)
+	{
 		*err = errno;
 		shm_unlink(name);
-		return(SCB_SHMEM);
+		return (SCB_SHMEM);
 	}
 
 	close(fdshmem);
@@ -429,9 +428,8 @@ errores get_buffer(buffer *ctx, char *name, int *err)
 	strncpy(ctx->name, name, TAMAX_NOMBRE);
 
 	*err = 0;
-	return(SCB_OK);
+	return (SCB_OK);
 }
-
 
 // Intentar bloquear el recurso para hacer un uso de forma segura test
 errores request_sem(buffer *ctx, bloqueo block, int *err)
@@ -501,27 +499,33 @@ errores request_sem(buffer *ctx, bloqueo block, int *err)
 errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err)
 
 {
-errores ret = SCB_OK;
+	errores ret = SCB_OK;
 
-	if(block == UNBLOCK){
-		if(sem_trywait(&(ctx->ctrl->vacio)) == -1)
-			return(BLOCK);
-	}else{
-		if(sem_wait(&(ctx->ctrl->vacio)) == -1){
+	if (block == UNBLOCK)
+	{
+		if (sem_trywait(&(ctx->ctrl->vacio)) == -1)
+			return (BLOCK);
+	}
+	else
+	{
+		if (sem_wait(&(ctx->ctrl->vacio)) == -1)
+		{
 			*err = errno;
-			return(SCB_SEMPH);
+			return (SCB_SEMPH);
 		}
 	}
 
-	if(sem_wait(&(ctx->ctrl->con_carrera)) == -1){
+	if (sem_wait(&(ctx->ctrl->con_carrera)) == -1)
+	{
 		*err = errno;
 		sem_post(&(ctx->ctrl->lleno));
-		return(SCB_SEMPH);
+		return (SCB_SEMPH);
 	}
 
-	if(ctx->ctrl->qtd == ctx->ctrl->capacidad)
+	if (ctx->ctrl->qtd == ctx->ctrl->capacidad)
 		ret = SCB_LLENO;
-	else{
+	else
+	{
 		copyMessage(ctx->mensajes + (ctx->ctrl->cabeza * ctx->ctrl->largo_mensaje), mensaje);
 
 		ctx->ctrl->cabeza = (ctx->ctrl->cabeza + 1) % ctx->ctrl->capacidad;
@@ -532,34 +536,40 @@ errores ret = SCB_OK;
 	sem_post(&(ctx->ctrl->lleno));
 
 	*err = 0;
-	return(ret);
+	return (ret);
 }
 
 // función que lee un mensaje , usada para consumidor
 
-errores get_msg(buffer *ctx, void *mensaje,  void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err)
+errores get_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err)
 {
 	errores ret = SCB_OK;
 
-	if(block == UNBLOCK){
-		if(sem_trywait(&(ctx->ctrl->lleno)) == -1)
-			return(SCB_BLOQUEADO);
-	}else{
-		if(sem_wait(&(ctx->ctrl->lleno)) == -1){
+	if (block == UNBLOCK)
+	{
+		if (sem_trywait(&(ctx->ctrl->lleno)) == -1)
+			return (SCB_BLOQUEADO);
+	}
+	else
+	{
+		if (sem_wait(&(ctx->ctrl->lleno)) == -1)
+		{
 			*err = errno;
-			return(SCB_SEMPH);
+			return (SCB_SEMPH);
 		}
 	}
 
-	if(sem_wait(&(ctx->ctrl->con_carrera)) == -1){
+	if (sem_wait(&(ctx->ctrl->con_carrera)) == -1)
+	{
 		*err = errno;
 		sem_post(&(ctx->ctrl->lleno));
-		return(SCB_SEMPH);
+		return (SCB_SEMPH);
 	}
 
-	if(ctx->ctrl->qtd == 0)
+	if (ctx->ctrl->qtd == 0)
 		ret = SCB_VACIO;
-	else{
+	else
+	{
 		copyMessage(mensaje, ctx->mensajes + (ctx->ctrl->cola * ctx->ctrl->largo_mensaje));
 
 		ctx->ctrl->cola = (ctx->ctrl->cola + 1) % ctx->ctrl->capacidad;
@@ -570,31 +580,28 @@ errores get_msg(buffer *ctx, void *mensaje,  void *(*copyMessage)(void *dest, co
 	sem_post(&(ctx->ctrl->vacio));
 
 	*err = 0;
-	return(ret);
+	return (ret);
 }
 
-
-//Función para destruir todo 
+//Función para destruir todo
 
 errores destruir_buffer(char *name, int *err)
 {
 	int ret = 0;
 	buffer ctx;
 	errores scberr;
-	
-    int fdshmem = 0;
+
+	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
 	size_t szshmem = 0;
 	void *shmem = NULL;
 	buffer_control scbInf;
 
-
-
 	/*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
 	//se busca la infor de ese buffer
 	// se consigue la info actual  de ese espacio de memoria
 	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
-    //se crea el file descriptor con mmap
+	//se crea el file descriptor con mmap
 	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
 	if (fdshmem == -1)
 	{
@@ -615,24 +622,26 @@ errores destruir_buffer(char *name, int *err)
 
 	*err = 0;
 
-	
 	//se obtiene el buffer
 	scberr = get_buffer(&ctx, name, err);
-	if(scberr != SCB_OK) return(scberr);
+	if (scberr != SCB_OK)
+		return (scberr);
 	// se destruyen los semaforos
 	ret = sem_destroy(&(ctx.ctrl->con_carrera)) | sem_destroy(&(ctx.ctrl->vacio)) | sem_destroy(&(ctx.ctrl->lleno));
 
-	if(ret != 0){
+	if (ret != 0)
+	{
 		*err = errno;
-		return(SCB_SEMPH);
+		return (SCB_SEMPH);
 	}
 
-	if(shm_unlink(ctx.name) == -1){
+	if (shm_unlink(ctx.name) == -1)
+	{
 		*err = errno;
-		return(SCB_SHMEM);
+		return (SCB_SHMEM);
 	}
 
-	return(SCB_OK);
+	return (SCB_OK);
 }
 
 /**
@@ -644,10 +653,10 @@ errores destruir_buffer(char *name, int *err)
 double ran_expo(double lambda)
 {
 
-  // long idum = rand(); // TODO used var
-  double u;
-  u = rand() / (RAND_MAX + 1.0);
-  return -log(1 - u) / lambda;
+	// long idum = rand(); // TODO used var
+	double u;
+	u = rand() / (RAND_MAX + 1.0);
+	return -log(1 - u) / lambda;
 }
 /**
  * Tomado de https://www.johndcook.com/blog/2010/06/14/generating-poisson-random-values/
@@ -656,16 +665,16 @@ double ran_expo(double lambda)
 int poissrnd_small(double mean)
 {
 
-  double L = exp(-mean);
-  double p = 1;
-  int result = 0;
-  do
-  {
-    result++;
-    p *= drand48();
-  } while (p > L);
-  result--;
-  return result;
+	double L = exp(-mean);
+	double p = 1;
+	int result = 0;
+	do
+	{
+		result++;
+		p *= drand48();
+	} while (p > L);
+	result--;
+	return result;
 }
 
 /**
@@ -674,16 +683,16 @@ int poissrnd_small(double mean)
  */
 double lgamma(double xx)
 {
-  double pi = 3.14159265358979;
-  double xx2 = xx * xx;
-  double xx3 = xx2 * xx;
-  double xx5 = xx3 * xx2;
-  double xx7 = xx5 * xx2;
-  double xx9 = xx7 * xx2;
-  double xx11 = xx9 * xx2;
-  return xx * log(xx) - xx - 0.5 * log(xx / (2 * pi)) +
-         1 / (12 * xx) - 1 / (360 * xx3) + 1 / (1260 * xx5) - 1 / (1680 * xx7) +
-         1 / (1188 * xx9) - 691 / (360360 * xx11);
+	double pi = 3.14159265358979;
+	double xx2 = xx * xx;
+	double xx3 = xx2 * xx;
+	double xx5 = xx3 * xx2;
+	double xx7 = xx5 * xx2;
+	double xx9 = xx7 * xx2;
+	double xx11 = xx9 * xx2;
+	return xx * log(xx) - xx - 0.5 * log(xx / (2 * pi)) +
+		   1 / (12 * xx) - 1 / (360 * xx3) + 1 / (1260 * xx5) - 1 / (1680 * xx7) +
+		   1 / (1188 * xx9) - 691 / (360360 * xx11);
 }
 
 /**
@@ -692,26 +701,26 @@ double lgamma(double xx)
  */
 int poissrnd_large(double mean)
 {
-  double r;
-  double x, m;
-  double pi = 3.14159265358979;
-  double sqrt_mean = sqrt(mean);
-  double log_mean = log(mean);
-  double g_x;
-  double f_m;
+	double r;
+	double x, m;
+	double pi = 3.14159265358979;
+	double sqrt_mean = sqrt(mean);
+	double log_mean = log(mean);
+	double g_x;
+	double f_m;
 
-  do
-  {
-    do
-    {
-      x = mean + sqrt_mean * tan(pi * (drand48() - 1 / 2.0));
-    } while (x < 0);
-    g_x = sqrt_mean / (pi * ((x - mean) * (x - mean) + mean));
-    m = floor(x);
-    f_m = exp(m * log_mean - mean - lgamma(m + 1));
-    r = f_m / g_x / 2.4;
-  } while (drand48() > r);
-  return (int)m;
+	do
+	{
+		do
+		{
+			x = mean + sqrt_mean * tan(pi * (drand48() - 1 / 2.0));
+		} while (x < 0);
+		g_x = sqrt_mean / (pi * ((x - mean) * (x - mean) + mean));
+		m = floor(x);
+		f_m = exp(m * log_mean - mean - lgamma(m + 1));
+		r = f_m / g_x / 2.4;
+	} while (drand48() > r);
+	return (int)m;
 }
 
 /**
@@ -720,13 +729,12 @@ int poissrnd_large(double mean)
  */
 int poissrnd(double mean)
 {
-  if (mean < 60)
-  {
-    return poissrnd_small(mean);
-  }
-  else
-  {
-    return poissrnd_large(mean);
-  }
+	if (mean < 60)
+	{
+		return poissrnd_small(mean);
+	}
+	else
+	{
+		return poissrnd_large(mean);
+	}
 }
-

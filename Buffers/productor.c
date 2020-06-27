@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
 		struct tm *info;
 		info = localtime(&(msj.time));
-		printf("Soy un productor corriendo  PID: %i,Generé el número mágico: %i, a las : %s",
+		printf("Soy un productor corriendo  PID: %i \n,Generé el número mágico: %i,\n a las : %s\n",
 			   msj.pid,
 			   msj.numero_magico,
 			   asctime(info));
