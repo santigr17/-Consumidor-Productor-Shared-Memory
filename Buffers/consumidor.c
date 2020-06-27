@@ -48,15 +48,27 @@ int main(int argc, char *argv[])
 	printf("%s", scberrormsgcreate);
 
 	//Se verifica entradas
-
-	if (argc != 4)
-	{
-		printf("ERROR: Por favor indique nombre del buffer y el tipo de consumidor m (manual) o a (automatico) \n");
-		printf("Argumento 0: [%s]\n", argv[0]);
-		printf("Argumento 1: [%s]\n", argv[1]);
-		printf("Argumento 2: [%s]\n", argv[2]);
-		return (1);
+	if (argc<3 || argc>4){
+		printf("ERROR:  Por favor indique:\n\
+	-> Nombre del buffer\n\
+	-> Tipo de Consumidor m (manual) o a (automatico) \n\
+	-> Media de Tiempo*\n*Modo automatico\n");
+		return 1;
 	}
+	if(argc == 3 && strcmp(argv[2], "manual")){
+			printf("ERROR:  Por favor para modo manual indique:\n\
+	-> Nombre del buffer\n\
+	-> Tipo de Consumidor m (manual) o a (automatico) \n");
+		return 1;
+	}
+	if(argc == 4 && strcmp(argv[2], "automatico")){
+			printf("ERROR:  Por favor para modo automatico indique:\n\
+	-> Nombre del buffer\n\
+	-> Tipo de Consumidor m (manual) o a (automatico) \n\
+	-> Media de Tiempo\n");
+		return 1;
+	}
+
 
 	scberr = get_buffer(&ctx, argv[1], &err);
 	scberr = add_consumidor(&ctx, argv[1], &err);
