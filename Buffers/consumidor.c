@@ -28,15 +28,19 @@ int kbhit(void)
 //Función especial para finalizar
 void finalizar()
 {
+	printf("Finalizando debido a variable global fue establecida como TRUE...\n");
 }
 
 //Función para finalizar con número mágico
-void finalizar_magico()
+void finalizar_magico(int magic, int myMagic)
 {
+	printf("Finalizando debido a variable número mágico: %d es igual a mi num mágico %d...\n", magic, myMagic);
 }
 
 int main(int argc, char *argv[])
 {
+	pid_t processId = getpid();
+	int myMagic = processId % 6;
 	srand((unsigned)time(NULL));
 	srand48((unsigned)time(NULL));
 	int err = 0;
@@ -118,7 +122,11 @@ int main(int argc, char *argv[])
 				printf("Finalizador.........: [%u] \n\r", inf.finalizar);
 
 				//Se tiene que verificar finalizador
-
+				if (inf.finalizar)
+				{
+					finalizar();
+					break;
+				}
 				if (enter == 10)
 				{
 
@@ -129,6 +137,11 @@ int main(int argc, char *argv[])
 					struct tm *info;
 					info = localtime(&(msj.time));
 					printw("Hora %s \n\r", asctime(info));
+					if (msj.numero_magico == myMagic)
+					{
+						finalizar_magico(msj.numero_magico, myMagic);
+						break;
+					}
 					sleep(4);
 				}
 			}
@@ -176,7 +189,7 @@ int main(int argc, char *argv[])
 
 			mensaje msj;
 			buffer ctx;
-			
+
 			// se pide el buffer a memoria compartida
 			scberr = get_buffer(&ctx, argv[1], &err);
 			//Se intenta leer
@@ -188,7 +201,11 @@ int main(int argc, char *argv[])
 			struct tm *info;
 			info = localtime(&(msj.time));
 			printf("Hora: %s \n\r", asctime(info));
-
+			if (msj.numero_magico == myMagic)
+			{
+				finalizar_magico(msj.numero_magico, myMagic);
+				break;
+			}
 			sleep(TEspera);
 			system("clear");
 		}
