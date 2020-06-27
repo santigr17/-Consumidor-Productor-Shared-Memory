@@ -14,7 +14,7 @@ pro1wdir=$(pwd)
 # sleep 2
 xterm -hold -e "cd $pro1wdir && ./iniciador \"$NEW_UUID\" 4 " &
 sleep 2
-xterm -hold -e "cd $pro1wdir && ./productor \"$NEW_UUID\" "&
+xterm -hold -e "cd $pro1wdir && ./productor \"$NEW_UUID\" 4 "&
 sleep 2
 xterm -hold -e "cd $pro1wdir && ./consumidor \"$NEW_UUID\" \"automatico\" 3 "&
 sleep 2

@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <time.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+
 #include "buffercircular.h"
 #include "mensaje.h"
 /**
@@ -24,15 +27,34 @@ void generate_message(mensaje *msj)
 	msj->time = time_created;
 }
 //Función especial para finalizar
-void finalizar()
+void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_t pid)
 {
-	printf("Finalizando debido a variable global fue establecida como TRUE...\n");
+	struct rusage usage;
+	getrusage(RUSAGE_SELF, &usage);
+	printf("Finalizando %d debido a variable global fue establecida como TRUE...\n",pid);
+	printf("Mensajes enviados %d ...\n", sentMessages);
+	printf("Tiempo total bloqueado %d ...\n", tiempoBloqueo);
+	printf("Tiempo total de espera %d...\n", tiempoEspera);
+	printf("Tiempo CPU: %ld.%06ld segundos en USER, %ld.%06ld segundos en KERNEL\n",
+		   usage.ru_utime.tv_sec,
+		   usage.ru_utime.tv_usec,
+		   usage.ru_stime.tv_sec,
+		   usage.ru_stime.tv_usec);
 }
 
 int main(int argc, char *argv[])
 {
+	srand((unsigned)time(NULL));
+	int sentMessages;
+	sentMessages = 0;
 	int err = 0;
 	int ret = 0;
+	unsigned int media;
+	media = atoi(argv[2]);
+	int TEspera = 0;
+	//TEspera = ran_expo(1 / media) + 1;
+	TEspera = 5;
+	pid_t processId = getpid();
 	// unsigned int sec = 0;
 	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
 	buffer ctx;
@@ -41,7 +63,7 @@ int main(int argc, char *argv[])
 	check_error(scberr, ret, scberrormsgcreate);
 	printf("%s", scberrormsgcreate);
 	scberr = get_buffer(&ctx, argv[1], &err);
-	scberr = add_productor(&ctx, argv[1],1 ,&err);
+	scberr = add_productor(&ctx, argv[1], TEspera, &err);
 
 	// MEDICION de TIEMPOS
 	double tiempoEspera, tiempoBloqueo, start, start2;
@@ -69,7 +91,7 @@ int main(int argc, char *argv[])
 		//Se tiene que verificar finalizador
 		if (inf.finalizar)
 		{
-			finalizar();
+			finalizar(sentMessages, tiempoBloqueo, tiempoEspera,processId);
 			break;
 		}
 		buffer ctx;
@@ -80,18 +102,19 @@ int main(int argc, char *argv[])
 		//se crea un mensaje
 		generate_message(&msj);
 
-		struct tm *info;
-		info = localtime(&(msj.time));
-		printf("Soy un productor corriendo  PID: %i \n,Generé el número mágico: %i,\n a las : %s\n",
-			   msj.pid,
-			   msj.numero_magico,
-			   asctime(info));
 
 		start = clock();
 		//Se intenta escribir
 		scberr = put_msg(&ctx, &msj, copyMessage, UNBLOCK, &ret);
 		tiempoBloqueo += clock() - start;
-		sleep(5); // Val
-		tiempoEspera += 5;
+		struct tm *info;
+		printf("Soy un productor corriendo  PID: %i \n,Generé el número mágico: %i,\n a las : %s\n",
+			   msj.pid,
+			   msj.numero_magico,
+			   asctime(info));
+		info = localtime(&(msj.time));
+		sentMessages = sentMessages + 1;
+		sleep(TEspera); // Val
+		tiempoEspera += TEspera;
 	}
 }
