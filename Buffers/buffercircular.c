@@ -380,8 +380,10 @@ void check_error(errores err, int ret, char *msg)
 		strncpy(errdesc, "no error", TAMAX_MSGERROR);
 		break;
 	}
-
-	snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
+	if(errat=="Success")
+		snprintf(msg, TAMAX_MSGERROR, "\n");
+	else
+		snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
 }
 
 //función que retorna un buffer de mem compartida

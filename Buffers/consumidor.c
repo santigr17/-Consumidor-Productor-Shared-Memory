@@ -39,13 +39,8 @@ int main(int argc, char *argv[])
 {
 	int err = 0;
 	int ret = 0;
-	// unsigned int sec = 0;
-	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
-	buffer ctx;
-	errores scberr = SCB_OK;
-
-	check_error(scberr, ret, scberrormsgcreate);
-	printf("%s", scberrormsgcreate);
+	unsigned int media;
+	unsigned int TEspera;
 
 	//Se verifica entradas
 	if (argc<3 || argc>4){
@@ -69,6 +64,14 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+		
+	// unsigned int sec = 0;
+	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
+	buffer ctx;
+	errores scberr = SCB_OK;
+	printf("Creando Consumidor...\n");
+	check_error(scberr, ret, scberrormsgcreate);
+	printf("%s", scberrormsgcreate);
 
 	scberr = get_buffer(&ctx, argv[1], &err);
 	scberr = add_consumidor(&ctx, argv[1], &err);
@@ -136,6 +139,20 @@ int main(int argc, char *argv[])
 	}
 	else if (!strcmp(argv[2], "automatico"))
 	{
+		media = atoi(argv[3]); 
+		// printf("maDato ingresado:%s\n\r",argv[3]);
+		if(media <= 0)
+		{
+			printf("ERROR:  Por favor para modo automatico:\n\r\
+		El tiempo ingresado es invalido\n\r\
+		Por favor ingrese un valor mayor a 0\n\r");
+			return 1;
+		} 
+
+		TEspera = 2;
+		int poiss = poissrnd(media+0.0); 
+		printf("Dato ingresado:%s\n\r",argv[3]);
+		
 
 		while (1)
 		{
@@ -165,11 +182,13 @@ int main(int argc, char *argv[])
 			scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
 			printf("Mi buffer es: %s \n\r", argv[1]);
 			printf("Numero mágico: %u \n\r", msj.numero_magico);
+			printf("Tiempo Espera: %d \n\r", poiss);
 			printf("Escrito por: %u \n\r", msj.pid);
 			struct tm *info;
 			info = localtime(&(msj.time));
 			printf("Hora: %s \n\r", asctime(info));
-			sleep(4);
+
+			sleep(TEspera);
 		}
 	}
 	else
