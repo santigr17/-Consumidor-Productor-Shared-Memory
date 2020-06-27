@@ -20,7 +20,7 @@ xterm -hold -e "cd $pro1wdir && ./consumidor \"$NEW_UUID\" \"automatico\" 3 "&
 sleep 2
 xterm -hold -e "cd $pro1wdir && ./consumidor \"$NEW_UUID\" \"manual\" "&
 sleep 1
-xterm -hold -e "tail -f | ls /dev/shm/"
+xterm -hold -e "ls /dev/shm/"
 
 # didn't do anything
 #exit 0

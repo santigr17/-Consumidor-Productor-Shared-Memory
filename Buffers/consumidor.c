@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
 	int err = 0;
 	int ret = 0;
 	unsigned int media;
-	unsigned int TEspera;
 
 	//Se verifica entradas
 	if (argc < 3 || argc > 4)
@@ -82,7 +81,6 @@ int main(int argc, char *argv[])
 	printf("%s", scberrormsgcreate);
 
 	scberr = get_buffer(&ctx, argv[1], &err);
-	scberr = add_consumidor(&ctx, argv[1], &err);
 
 	//Funciones para la captura de teclas
 	initscr();
@@ -95,6 +93,8 @@ int main(int argc, char *argv[])
 
 	if (!strcmp(argv[2], "manual"))
 	{
+		int espera = 1;
+		scberr = add_consumidor(&ctx, argv[1], espera, &err);
 		while (1)
 		{
 
@@ -156,6 +156,7 @@ int main(int argc, char *argv[])
 	}
 	else if (!strcmp(argv[2], "automatico"))
 	{
+
 		media = atoi(argv[3]);
 		// printf("maDato ingresado:%s\n\r",argv[3]);
 		if (media <= 0)
@@ -165,8 +166,9 @@ int main(int argc, char *argv[])
 		Por favor ingrese un valor mayor a 0\n\r");
 			return 1;
 		}
-
-		TEspera = poissrnd(media + 0.0)+1;
+		unsigned int TEspera;
+		TEspera = poissrnd(media + 0.0) + 1;
+		scberr = add_consumidor(&ctx, argv[1], TEspera, &err);
 		printf("Dato ingresado:%s y tiempo de espera generado %d\n\r", argv[3], TEspera);
 		while (1)
 		{

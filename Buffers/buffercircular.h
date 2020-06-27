@@ -31,6 +31,7 @@ typedef struct _buffer_control{
 	uint16_t qtd;
 	uint16_t capacidad;
 	size_t   largo_mensaje; 
+	uint16_t maxEspera;
 }buffer_control;
 
 
@@ -79,10 +80,10 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 
 //función para aumentar número de productores
 
-errores add_productor(buffer *ctx, char *name, int *err);
+errores add_productor(buffer *ctx, char *name, int espera ,int *err);
 
 //función para aumentar número de consumidores
-errores add_consumidor(buffer *ctx, char *name, int *err);
+errores add_consumidor(buffer *ctx, char *name, int espera, int *err);
 
 //función para disminuir número de productores
 

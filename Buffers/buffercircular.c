@@ -80,6 +80,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 
 	ctx->ctrl->productores = 0;
 	ctx->ctrl->consumidores = 0;
+	ctx->ctrl->maxEspera = 1;
 
 	ctx->ctrl->capacidad = totalElementos;
 	ctx->ctrl->largo_mensaje = tamElementos;
@@ -138,7 +139,7 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
  * TIPO 1 : Productor inicial
  * TIPO 2 : Consumidor / Productos ya creado
 */
-errores add_productor(buffer *ctx, char *name, int *err)
+errores add_productor(buffer *ctx, char *name,int espera, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
@@ -169,7 +170,10 @@ errores add_productor(buffer *ctx, char *name, int *err)
 	int productores_nuevos = scbInf.productores;
 	productores_nuevos = productores_nuevos + 1;
 	(*puntero).productores = productores_nuevos;
-
+	int maxEspera = scbInf.maxEspera;
+	if(maxEspera <  espera){
+		(*puntero).maxEspera = espera;
+	}
 	*err = 0;
 
 	close(fdshmem);
@@ -179,7 +183,7 @@ errores add_productor(buffer *ctx, char *name, int *err)
 
 //Función para aumentar el número de consumidores en el buffer 
 
-errores add_consumidor(buffer *ctx, char *name, int *err)
+errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
@@ -212,7 +216,10 @@ errores add_consumidor(buffer *ctx, char *name, int *err)
 	(*puntero).consumidores = consumidores_nuevos;
 
 	*err = 0;
-
+	int maxEspera = scbInf.maxEspera;
+	if(maxEspera <  espera){
+		(*puntero).maxEspera = espera;
+	}
 	close(fdshmem);
 	return (SCB_OK);
 }

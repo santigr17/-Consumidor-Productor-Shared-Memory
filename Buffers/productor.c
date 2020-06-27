@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	check_error(scberr, ret, scberrormsgcreate);
 	printf("%s", scberrormsgcreate);
 	scberr = get_buffer(&ctx, argv[1], &err);
-	scberr = add_productor(&ctx, argv[1], &err);
+	scberr = add_productor(&ctx, argv[1],1 ,&err);
 
 	// MEDICION de TIEMPOS
 	double tiempoEspera, tiempoBloqueo, start, start2;

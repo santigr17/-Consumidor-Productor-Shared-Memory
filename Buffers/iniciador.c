@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
 	printf("Cabeza..............: [%u]\n", inf.cabeza);
 	printf("COLA................: [%u]\n", inf.cola);
 	printf("Qtd.................: [%u]\n", inf.qtd);
+	printf("Espera máxima.................: [%u]\n", inf.maxEspera);
 	printf("Capaciad total......: [%u]\n", inf.capacidad);
 	printf("Productores.........: [%u]\n", inf.productores);
 	printf("Consumidores........: [%u]\n", inf.consumidores);
