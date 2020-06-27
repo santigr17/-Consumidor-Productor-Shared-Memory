@@ -45,7 +45,9 @@ int main(int argc, char *argv[])
 	scberr = get_buffer(&ctx,argv[1], &err);
 	scberr = add_productor(&ctx,argv[1], &err);
 
-	
+
+	// MEDICION de TIEMPOS
+	double tiempoEspera, tiempoBloqueo, start, start2;
 
 	//SE LIGA PRODUCTOR CON BUFFER USANDO EL ARGUMENTO PASADO POR CONSOLA
 	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr, ret, 1);
@@ -74,8 +76,10 @@ int main(int argc, char *argv[])
 		system("clear");
 		//se refresca el buffer 
 		scberr = get_buffer( &ctx,argv[1], &err);
+		
 		//se crea un mensaje 
 		generate_message(&msj);
+		
 		struct tm *info;
 		info = localtime(&(msj.time));
 		printf("Soy un productor corriendo  PID: %i,Generé el número mágico: %i, a las : %s",
@@ -83,9 +87,11 @@ int main(int argc, char *argv[])
 			   msj.numero_magico,
 			   asctime(info));
 
-
+		start = clock();
 		//Se intenta escribir
 		scberr = put_msg(&ctx, &msj, copyMessage, UNBLOCK, &ret);
-		sleep(5);
+		tiempoBloqueo += clock()-start;
+		sleep(5); // Val
+		tiempoEspera+=5;
 	}
 }
