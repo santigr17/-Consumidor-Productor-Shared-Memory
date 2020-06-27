@@ -11,13 +11,13 @@
 # opens terminal but then I can't control terminal afterwards
 make sample
 sleep 2
-xterm -hold -e "cd ~/tec/SistemasOperativos/proyecto1/Consumidor-Productor-Shared-Memory-Proyecto1/Buffers && ./iniciador \"init12\" 4 " &
+xterm -hold -e "cd $pro1wdir && ./iniciador \"init12\" 4 " &
 sleep 2
-xterm -hold -e "cd ~/tec/SistemasOperativos/proyecto1/Consumidor-Productor-Shared-Memory-Proyecto1/Buffers && ./productor \"init12\" "&
+xterm -hold -e "cd $pro1wdir && ./productor \"init12\" "&
 sleep 2
-xterm -hold -e "cd ~/tec/SistemasOperativos/proyecto1/Consumidor-Productor-Shared-Memory-Proyecto1/Buffers && ./consumidor \"init12\" \"automatico\" "&
+xterm -hold -e "cd $pro1wdir && ./consumidor \"init12\" \"automatico\" "&
 sleep 2
-xterm -hold -e "cd ~/tec/SistemasOperativos/proyecto1/Consumidor-Productor-Shared-Memory-Proyecto1/Buffers && ./consumidor \"init12\" \"manual\" "&
+xterm -hold -e "cd $pro1wdir && ./consumidor \"init12\" \"manual\" "&
 
 
 # didn't do anything

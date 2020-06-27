@@ -18,7 +18,8 @@ INCLUDEPATH = -I./
 LIBS = -lbuffercircular -lpthread -lrt -lncurses -lm
 LIBPATH = -L./ 
 
-
+install:
+	export pro1wdir=$(pwd)
 ##Se crea la biblioteca 
 lbuffercircular:
 	@echo
@@ -29,7 +30,7 @@ lbuffercircular:
 	-$(RM) buffercircular.o
 
 ##compilar prueba
-sample: lbuffercircular
+sample: install lbuffercircular
 	@echo
 	@echo "=== Compilando =============="
 	$(CC) -o iniciador iniciador.c $(CFLAGS) $(INCLUDEPATH) $(LIBPATH) $(LIBS)
