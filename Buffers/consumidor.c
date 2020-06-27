@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
 	//Se verifica entradas
 
-	if (argc != 3)
+	if (argc != 4)
 	{
 		printf("ERROR: Por favor indique nombre del buffer y el tipo de consumidor m (manual) o a (automatico) \n");
 		printf("Argumento 0: [%s]\n", argv[0]);
