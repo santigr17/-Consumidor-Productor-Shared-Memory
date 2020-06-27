@@ -120,4 +120,33 @@ errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 
 errores get_msg(buffer *ctx, void *mensaje,  void *(*copyMessage)(void *dest, const void *src), bloqueo block, int *err);
 
+
+/**
+ * Distribución exponencial
+ * Valor de lambda se relaciona con el maximo valor posible.
+ * Se usa time para obtener un valor inicial. 
+ * @param lambda Valor de lambda se relaciona con el maximo valor posible.
+ */
+double ran_expo(double lambda);
+/**
+ * Tomado de https://www.johndcook.com/blog/2010/06/14/generating-poisson-random-values/
+ * @param mean La media de las ocurrencias
+ */
+int poissrnd_small(double mean);
+/**
+ * Función lambda logarítmica
+ * @param xx variable independiente
+ */
+double lgamma(double xx);
+/**
+ * Tomado de https://www.johndcook.com/blog/2010/06/14/generating-poisson-random-values/
+ * @param mean La media de las ocurrencias
+ */
+int poissrnd_large(double mean);
+
+/**
+ * Función de generar números aleatorios 
+ * basado en poisson
+ */
+int poissrnd(double mean);
 #endif

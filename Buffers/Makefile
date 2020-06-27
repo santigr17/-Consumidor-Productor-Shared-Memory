@@ -15,7 +15,7 @@ RANLIB = ranlib
 CPPCHECK = cppcheck
 
 INCLUDEPATH = -I./
-LIBS = -lbuffercircular -lpthread -lrt -lncurses
+LIBS = -lbuffercircular -lpthread -lrt -lncurses -lm
 LIBPATH = -L./ 
 
 
