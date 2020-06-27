@@ -37,34 +37,38 @@ void finalizar_magico()
 
 int main(int argc, char *argv[])
 {
+	srand((unsigned)time(NULL));
+	srand48((unsigned)time(NULL));
 	int err = 0;
 	int ret = 0;
 	unsigned int media;
 	unsigned int TEspera;
 
 	//Se verifica entradas
-	if (argc<3 || argc>4){
+	if (argc < 3 || argc > 4)
+	{
 		printf("ERROR:  Por favor indique:\n\
 	-> Nombre del buffer\n\
 	-> Tipo de Consumidor m (manual) o a (automatico) \n\
 	-> Media de Tiempo*\n*Modo automatico\n");
 		return 1;
 	}
-	if(argc == 3 && strcmp(argv[2], "manual")){
-			printf("ERROR:  Por favor para modo manual indique:\n\
+	if (argc == 3 && strcmp(argv[2], "manual"))
+	{
+		printf("ERROR:  Por favor para modo manual indique:\n\
 	-> Nombre del buffer\n\
 	-> Tipo de Consumidor m (manual) o a (automatico) \n");
 		return 1;
 	}
-	if(argc == 4 && strcmp(argv[2], "automatico")){
-			printf("ERROR:  Por favor para modo automatico indique:\n\
+	if (argc == 4 && strcmp(argv[2], "automatico"))
+	{
+		printf("ERROR:  Por favor para modo automatico indique:\n\
 	-> Nombre del buffer\n\
 	-> Tipo de Consumidor m (manual) o a (automatico) \n\
 	-> Media de Tiempo\n");
 		return 1;
 	}
 
-		
 	// unsigned int sec = 0;
 	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
 	buffer ctx;
@@ -139,21 +143,18 @@ int main(int argc, char *argv[])
 	}
 	else if (!strcmp(argv[2], "automatico"))
 	{
-		media = atoi(argv[3]); 
+		media = atoi(argv[3]);
 		// printf("maDato ingresado:%s\n\r",argv[3]);
-		if(media <= 0)
+		if (media <= 0)
 		{
 			printf("ERROR:  Por favor para modo automatico:\n\r\
 		El tiempo ingresado es invalido\n\r\
 		Por favor ingrese un valor mayor a 0\n\r");
 			return 1;
-		} 
+		}
 
-		TEspera = 2;
-		int poiss = poissrnd(media+0.0); 
-		printf("Dato ingresado:%s\n\r",argv[3]);
-		
-
+		TEspera = poissrnd(media + 0.0);
+		printf("Dato ingresado:%s y tiempo de espera generado %d\n\r", argv[3], TEspera);
 		while (1)
 		{
 			//se pide info del controller
@@ -175,20 +176,21 @@ int main(int argc, char *argv[])
 
 			mensaje msj;
 			buffer ctx;
-			system("clear");
+			
 			// se pide el buffer a memoria compartida
 			scberr = get_buffer(&ctx, argv[1], &err);
 			//Se intenta leer
 			scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
 			printf("Mi buffer es: %s \n\r", argv[1]);
 			printf("Numero mágico: %u \n\r", msj.numero_magico);
-			printf("Tiempo Espera: %d \n\r", poiss);
+			printf("Tiempo Espera: %d \n\r", TEspera);
 			printf("Escrito por: %u \n\r", msj.pid);
 			struct tm *info;
 			info = localtime(&(msj.time));
 			printf("Hora: %s \n\r", asctime(info));
 
 			sleep(TEspera);
+			system("clear");
 		}
 	}
 	else
