@@ -4,20 +4,20 @@
 # I also can't enter text after command executes
 #echo "Hello World!"
 #exec konsole --noclose -e cat ~/.aliases
-
+NEW_UUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1)
 # for i in 1 2 3 4
 # do
 # done
 # opens terminal but then I can't control terminal afterwards
-make sample
+# make sample
+# sleep 2
+xterm -hold -e "cd $pro1wdir && ./iniciador \"$NEW_UUID\" 4 " &
 sleep 2
-xterm -hold -e "cd $pro1wdir && ./iniciador \"init12\" 4 " &
+xterm -hold -e "cd $pro1wdir && ./productor \"$NEW_UUID\" "&
 sleep 2
-xterm -hold -e "cd $pro1wdir && ./productor \"init12\" "&
+xterm -hold -e "cd $pro1wdir && ./consumidor \"$NEW_UUID\" \"automatico\" 12 "&
 sleep 2
-xterm -hold -e "cd $pro1wdir && ./consumidor \"init12\" \"automatico\" "&
-sleep 2
-xterm -hold -e "cd $pro1wdir && ./consumidor \"init12\" \"manual\" "&
+xterm -hold -e "cd $pro1wdir && ./consumidor \"$NEW_UUID\" \"manual\" 5 "&
 
 
 # didn't do anything
