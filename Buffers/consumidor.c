@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		TEspera = poissrnd(media + 0.0);
+		TEspera = poissrnd(media + 0.0)+1;
 		printf("Dato ingresado:%s y tiempo de espera generado %d\n\r", argv[3], TEspera);
 		while (1)
 		{
