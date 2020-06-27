@@ -186,7 +186,11 @@ int main(int argc, char *argv[])
 			printf("Finalizador.........: [%u]\n", inf.finalizar);
 
 			//Se tiene que verificar finalizador
-
+			if (inf.finalizar)
+			{
+				finalizar();
+				break;
+			}
 			mensaje msj;
 			buffer ctx;
 
