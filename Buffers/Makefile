@@ -19,7 +19,7 @@ LIBS = -lbuffercircular -lpthread -lrt -lncurses -lm
 LIBPATH = -L./ 
 
 install:
-	export pro1wdir=$(pwd)
+	export pro1wdir=$(PWD)
 ##Se crea la biblioteca 
 lbuffercircular:
 	@echo
