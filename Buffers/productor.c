@@ -9,6 +9,7 @@
 
 #include "buffercircular.h"
 #include "mensaje.h"
+#include "colors.h"
 /**
  * Genera un mensaje.
  */
@@ -31,15 +32,36 @@ void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_
 {
 	struct rusage usage;
 	getrusage(RUSAGE_SELF, &usage);
-	printf("Finalizando %d debido a variable global fue establecida como TRUE...\n",pid);
-	printf("Mensajes enviados %d ...\n", sentMessages);
-	printf("Tiempo total bloqueado %d ...\n", tiempoBloqueo);
-	printf("Tiempo total de espera %d...\n", tiempoEspera);
-	printf("Tiempo CPU: %ld.%06ld segundos en USER, %ld.%06ld segundos en KERNEL\n",
-		   usage.ru_utime.tv_sec,
-		   usage.ru_utime.tv_usec,
-		   usage.ru_stime.tv_sec,
-		   usage.ru_stime.tv_usec);
+	printf(ANSI_RED_BACKGROUND "Finalizando %d debido a variable global fue establecida como TRUE..." ANSI_COLOR_RESET "\n", pid);
+	printf("Mensajes enviados........." ANSI_GRAY_BACKGROUND 
+		   " %d " ANSI_COLOR_RESET
+		   "\n",
+		   sentMessages);
+	printf("Tiempo total bloqueado...." ANSI_GRAY_BACKGROUND 
+		   " %d " ANSI_COLOR_RESET
+		   "\n",
+		   tiempoBloqueo);
+	printf("Tiempo total de espera...." ANSI_GRAY_BACKGROUND 
+		   " %d " ANSI_COLOR_RESET
+		   "\n",
+		   tiempoEspera);
+	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND 
+		   " %ld.%06ld " ANSI_COLOR_RESET
+		   " segundos en USER. "
+		   "\n",
+		   usage.ru_utime.tv_sec, usage.ru_utime.tv_usec);
+
+	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND 
+		   " %ld.%06ld " ANSI_COLOR_RESET
+		   " segundos en KERNEL. "
+		   "\n",
+		   usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+
+	// printf("Tiempo CPU: %ld.%06ld segundos en USER, %ld.%06ld segundos en KERNEL\n", usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+	//    usage.ru_utime.tv_sec,
+	//    usage.ru_utime.tv_usec,
+	//    usage.ru_stime.tv_sec,
+	//    usage.ru_stime.tv_usec);
 }
 
 int main(int argc, char *argv[])
@@ -91,7 +113,7 @@ int main(int argc, char *argv[])
 		//Se tiene que verificar finalizador
 		if (inf.finalizar)
 		{
-			finalizar(sentMessages, tiempoBloqueo, tiempoEspera,processId);
+			finalizar(sentMessages, tiempoBloqueo, tiempoEspera, processId);
 			break;
 		}
 		buffer ctx;
@@ -102,18 +124,19 @@ int main(int argc, char *argv[])
 		//se crea un mensaje
 		generate_message(&msj);
 
-
 		start = clock();
 		//Se intenta escribir
 		scberr = put_msg(&ctx, &msj, copyMessage, UNBLOCK, &ret);
 		tiempoBloqueo += clock() - start;
+		if (scberr == SCB_OK)
+		{
+			sentMessages = sentMessages + 1;
+		}
 		struct tm *info;
-		printf("Soy un productor corriendo  PID: %i \n,Generé el número mágico: %i,\n a las : %s\n",
-			   msj.pid,
-			   msj.numero_magico,
-			   asctime(info));
+		printf(ANSI_GREEN_BACKGROUND ANSI_COLOR_BLACK " Soy un productor corriendo  PID: %i " ANSI_COLOR_RESET "\n", msj.pid);
+		printf("Generé el número mágico: " ANSI_PINK_BACKGROUND " %i " ANSI_COLOR_RESET "\n", msj.numero_magico);
+		printf("A las : " ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK " %s " ANSI_COLOR_RESET, asctime(info));
 		info = localtime(&(msj.time));
-		sentMessages = sentMessages + 1;
 		sleep(TEspera); // Val
 		tiempoEspera += TEspera;
 	}
