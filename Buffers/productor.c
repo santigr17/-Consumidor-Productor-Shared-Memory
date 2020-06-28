@@ -33,29 +33,29 @@ void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_
 	struct rusage usage;
 	getrusage(RUSAGE_SELF, &usage);
 	printf(ANSI_RED_BACKGROUND "Finalizando %d debido a variable global fue establecida como TRUE..." ANSI_COLOR_RESET "\n", pid);
-	printf("Mensajes enviados........." ANSI_GRAY_BACKGROUND 
+	printf("Mensajes enviados........." ANSI_GRAY_BACKGROUND
 		   " %d " ANSI_COLOR_RESET
 		   "\n",
 		   sentMessages);
-	printf("Tiempo total bloqueado...." ANSI_GRAY_BACKGROUND 
+	printf("Tiempo total bloqueado...." ANSI_GRAY_BACKGROUND
 		   " %d " ANSI_COLOR_RESET
 		   "\n",
 		   tiempoBloqueo);
-	printf("Tiempo total de espera...." ANSI_GRAY_BACKGROUND 
+	printf("Tiempo total de espera...." ANSI_GRAY_BACKGROUND
 		   " %d " ANSI_COLOR_RESET
 		   "\n",
 		   tiempoEspera);
-	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND 
-		   " %ld.%06ld " ANSI_COLOR_RESET
+	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND
+		   " %ld.%06ld  " ANSI_COLOR_RESET
 		   " segundos en USER. "
 		   "\n",
-		   usage.ru_utime.tv_sec, usage.ru_utime.tv_usec);
+		   (long int)usage.ru_utime.tv_sec, (long int)usage.ru_utime.tv_usec);
 
-	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND 
-		   " %ld.%06ld " ANSI_COLOR_RESET
+	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND
+		   " %ld.%06ld  " ANSI_COLOR_RESET
 		   " segundos en KERNEL. "
 		   "\n",
-		   usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+		   (long int)usage.ru_stime.tv_sec, (long int)usage.ru_stime.tv_usec);
 
 	// printf("Tiempo CPU: %ld.%06ld segundos en USER, %ld.%06ld segundos en KERNEL\n", usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
 	//    usage.ru_utime.tv_sec,
