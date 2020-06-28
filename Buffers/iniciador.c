@@ -6,6 +6,10 @@
 #include "buffercircular.h"
 #include "mensaje.h"
 
+void finalizar(){
+	printf("Cerrando iniciador\n");
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
@@ -37,6 +41,11 @@ int main(int argc, char *argv[])
     system("clear");
     /* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
     scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+
+	if(inf.finalizar){
+		finalizar();
+		return -1;
+	}
 	//Se verifica algun error
 	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
 	// se printea
