@@ -10,7 +10,22 @@ void finalizar()
 {
 	printf(ANSI_RED_BACKGROUND "Cerrando iniciador\n" ANSI_COLOR_RESET);
 }
-
+void imprimir(char *name, buffer_control *inf, int semlleno, int semvacio)
+{
+	system("clear");
+	printf("Nombre:"
+		   "[%s]\n",
+		   name);
+	printf("Finalizador.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).finalizar);
+	printf("Cabeza..............:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cabeza);
+	printf("COLA................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cola);
+	printf("Qtd.................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).qtd);
+	printf("Espera máxima.......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).maxEspera);
+	printf("Capaciad total......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).capacidad);
+	printf("Productores.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).productores);
+	printf("Consumidores........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).consumidores);
+	printf("Semaforos..........: Espacios Ocupados [%d] | Espacios Vacios [%d]\n", semlleno, semvacio);
+}
 int main(int argc, char *argv[])
 {
 	int ret = 0;
@@ -49,31 +64,23 @@ int main(int argc, char *argv[])
 	errores scberr2;
 	while (1)
 	{
-		system("clear");
 		/* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
 		scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
 
-		if (inf.finalizar)
+		if (inf.finalizar && !(inf.productores) && !(inf.consumidores))
 		{
+
+			imprimir(argv[1], &inf, semlleno, semvacio);
+			remove_iniciador(&ctx, argv[1], &err);
 			finalizar();
 			return -1;
 		}
 		//Se verifica algun error
 		SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
 		// se printea
-		printf("Nombre:"
-			   "[%s]\n",
-			   argv[1]);
-		printf("Finalizador.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.finalizar);
-		printf("Cabeza..............:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.cabeza);
-		printf("COLA................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.cola);
-		printf("Qtd.................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.qtd);
-		printf("Espera máxima.......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.maxEspera);
-		printf("Capaciad total......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.capacidad);
-		printf("Productores.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.productores);
-		printf("Consumidores........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK"[%u]\n" ANSI_COLOR_RESET, inf.consumidores);
-		printf("Semaforos..........: Espacios Ocupados [%d] | Espacios Vacios [%d]\n", semlleno, semvacio);
+		
+		imprimir(argv[1], &inf, semlleno, semvacio);
 		printf("Request Context: %p  \n", &(ctx.ctrl));
-		sleep(2);
+		sleep(1);
 	}
 }

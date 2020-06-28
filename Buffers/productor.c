@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
 		if (inf.finalizar)
 		{
 			finalizar(sentMessages, tiempoBloqueo, tiempoEspera, processId);
+			remove_productor(&ctx, argv[1], &err);
 			break;
 		}
 		buffer ctx;

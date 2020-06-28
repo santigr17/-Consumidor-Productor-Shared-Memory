@@ -33,7 +33,6 @@ void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_
 {
 	struct rusage usage;
 	getrusage(RUSAGE_SELF, &usage);
-	printf(ANSI_RED_BACKGROUND "\rFinalizando %d debido a variable global fue establecida como TRUE..." ANSI_COLOR_RESET "\n", pid);
 	printf("\rMensajes enviados........." ANSI_GRAY_BACKGROUND
 		   " %d " ANSI_COLOR_RESET
 		   "\n",
@@ -68,6 +67,7 @@ void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_
 //Función para finalizar con número mágico
 void finalizar_magico(int magic, int myMagic)
 {
+
 	printf(ANSI_MAGENTA_GREEN_BACKGROUND "Finalizando debido a variable número mágico: %d es igual a mi num mágico %d...\n" ANSI_COLOR_RESET, magic, myMagic);
 }
 
@@ -154,8 +154,9 @@ int main(int argc, char *argv[])
 			//Se tiene que verificar finalizador
 			if (inf.finalizar)
 			{
+				remove_consumidor(&ctx, argv[1], &err);
+				printf(ANSI_RED_BACKGROUND "\rFinalizando %d debido a variable global fue establecida como TRUE..." ANSI_COLOR_RESET "\n", processId);
 				finalizar(receivedMessages, tiempoBloqueo, tiempoEspera, processId);
-
 				return -1;
 			}
 			if (kbhit())
@@ -176,7 +177,9 @@ int main(int argc, char *argv[])
 					printf(ANSI_COLOR_RESET "\rEscrito por:........" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r " ANSI_COLOR_RESET, msj.pid);
 					struct tm *info;
 					info = localtime(&(msj.time));
-					printf(ANSI_COLOR_RESET "\rHora:..............." " %s \n\r " , asctime(info));
+					printf(ANSI_COLOR_RESET "\rHora:..............."
+											" %s \n\r ",
+						   asctime(info));
 					printf(ANSI_COLOR_RESET);
 					if (scberr == SCB_OK)
 					{
@@ -184,7 +187,9 @@ int main(int argc, char *argv[])
 					}
 					if (msj.numero_magico == myMagic)
 					{
+						remove_consumidor(&ctx, argv[1], &err);
 						finalizar_magico(msj.numero_magico, myMagic);
+						finalizar(receivedMessages, tiempoBloqueo, tiempoEspera, processId);
 						break;
 					}
 					sleep(4);
@@ -192,7 +197,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printf(ANSI_COLOR_MAGENTA"Por favor presionar ENTER para intentar consumir mensaje \n"ANSI_COLOR_RESET);
+				printf(ANSI_COLOR_MAGENTA "Por favor presionar ENTER para intentar consumir mensaje \n" ANSI_COLOR_RESET);
 				sleep(2);
 			}
 			system("clear");
@@ -234,6 +239,8 @@ int main(int argc, char *argv[])
 			//Se tiene que verificar finalizador
 			if (inf.finalizar)
 			{
+				remove_consumidor(&ctx, argv[1], &err);
+				printf(ANSI_RED_BACKGROUND "\rFinalizando %d debido a variable global fue establecida como TRUE..." ANSI_COLOR_RESET "\n", processId);
 				finalizar(receivedMessages, tiempoBloqueo, tiempoEspera, processId);
 				break;
 			}
@@ -252,14 +259,18 @@ int main(int argc, char *argv[])
 			printf(ANSI_COLOR_RESET "Escrito por:........" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r" ANSI_COLOR_RESET, msj.pid);
 			struct tm *info;
 			info = localtime(&(msj.time));
-			printf(ANSI_COLOR_RESET "Hora:..............." " %s \n\r " , asctime(info));
+			printf(ANSI_COLOR_RESET "Hora:..............."
+									" %s \n\r ",
+				   asctime(info));
 			if (scberr == SCB_OK)
 			{
 				receivedMessages = receivedMessages + 1;
 			}
 			if (msj.numero_magico == myMagic)
 			{
+				remove_consumidor(&ctx, argv[1], &err);
 				finalizar_magico(msj.numero_magico, myMagic);
+				finalizar(receivedMessages, tiempoBloqueo, tiempoEspera, processId);
 				break;
 			}
 			sleep(TEspera);

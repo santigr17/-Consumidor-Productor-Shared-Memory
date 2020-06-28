@@ -26,6 +26,7 @@ typedef struct _buffer_control{
 	sem_t lleno;
 	sem_t con_carrera;
 	uint16_t finalizar;
+	uint16_t initFinalizado;
 	uint16_t cabeza;
 	uint16_t cola;
 	uint16_t qtd;
@@ -42,6 +43,7 @@ typedef struct _buffer{
 	buffer_control *ctrl;
 	void *mensajes;
 }buffer;
+
 
 
 // estructura para iterar (revisar)
@@ -84,6 +86,9 @@ errores add_productor(buffer *ctx, char *name, int espera ,int *err);
 
 //función para aumentar número de consumidores
 errores add_consumidor(buffer *ctx, char *name, int espera, int *err);
+
+//Función para indicar que el iniciador está finalizado
+errores remove_iniciador(buffer *ctx, char *name, int *err);
 
 //función para disminuir número de productores
 

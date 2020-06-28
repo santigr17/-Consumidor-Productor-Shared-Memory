@@ -84,6 +84,8 @@ errores crear_buffer(char *name, uint16_t totalElementos, size_t tamElementos, b
 
 	ctx->ctrl->capacidad = totalElementos;
 	ctx->ctrl->largo_mensaje = tamElementos;
+	ctx->ctrl->initFinalizado = 0;
+	ctx->ctrl->finalizar = 0;
 
 	ctx->mensajes = (void *)(shmem + sizeof(buffer));
 
@@ -180,6 +182,41 @@ errores add_productor(buffer *ctx, char *name, int espera, int *err)
 	return (SCB_OK);
 }
 
+//Función para indicar que el iniciador está finalizado
+errores remove_iniciador(buffer *ctx, char *name, int *err)
+{
+	int fdshmem = 0;
+	int sf = 0, se = 0, sb = 0;
+	size_t szshmem = 0;
+	void *shmem = NULL;
+	buffer_control scbInf;
+	errores scberr;
+
+	/*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+	//se busca la infor de ese buffer
+	// se consigue la info actual  de ese espacio de memoria
+	scberr = get_info_buffer(name, &scbInf, &sf, &se, &sb, err);
+	//se crea el file descriptor con mmap
+	fdshmem = shm_open(name, O_RDWR, S_IRUSR | S_IWUSR);
+	if (fdshmem == -1)
+	{
+		*err = errno;
+		return (SCB_SHMEM);
+	}
+
+	//Se modifica estados de productores
+	if (scberr != SCB_OK)
+	{
+		return (scberr);
+	}
+	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	(*puntero).initFinalizado = 1;
+	*err = 0;
+
+	close(fdshmem);
+	return (SCB_OK);
+}
+
 //Función para aumentar el número de consumidores en el buffer
 
 errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
@@ -252,9 +289,9 @@ errores remove_productor(buffer *ctx, char *name, int *err)
 	}
 	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
 
-	int productores_nuevos = scbInf.productores;
-	productores_nuevos = productores_nuevos - 1;
-	(*puntero).productores = productores_nuevos;
+	// int productores_nuevos = scbInf.productores;
+	// productores_nuevos = productores_nuevos - 1;
+	(*puntero).productores -= 1;
 
 	*err = 0;
 
@@ -292,9 +329,9 @@ errores remove_consumidor(buffer *ctx, char *name, int *err)
 	}
 	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
 
-	int consumidores_nuevos = scbInf.consumidores;
-	consumidores_nuevos = consumidores_nuevos - 1;
-	(*puntero).consumidores = consumidores_nuevos;
+	// int consumidores_nuevos = scbInf.consumidores;
+	// consumidores_nuevos = consumidores_nuevos - 1;
+	(*puntero).consumidores -= 1;
 
 	*err = 0;
 
@@ -619,26 +656,28 @@ errores destruir_buffer(char *name, int *err)
 
 	int finalizar = 1;
 	(*puntero).finalizar = finalizar;
-	sleep((*puntero).maxEspera);
-	*err = 0;
-
-	//se obtiene el buffer
-	scberr = get_buffer(&ctx, name, err);
-	if (scberr != SCB_OK)
-		return (scberr);
-	// se destruyen los semaforos
-	ret = sem_destroy(&(ctx.ctrl->con_carrera)) | sem_destroy(&(ctx.ctrl->vacio)) | sem_destroy(&(ctx.ctrl->lleno));
-
-	if (ret != 0)
+	sleep((*puntero).maxEspera + 3);
+	if ((*puntero).initFinalizado)
 	{
-		*err = errno;
-		return (SCB_SEMPH);
-	}
+		*err = 0;
+		//se obtiene el buffer
+		scberr = get_buffer(&ctx, name, err);
+		if (scberr != SCB_OK)
+			return (scberr);
+		// se destruyen los semaforos
+		ret = sem_destroy(&(ctx.ctrl->con_carrera)) | sem_destroy(&(ctx.ctrl->vacio)) | sem_destroy(&(ctx.ctrl->lleno));
 
-	if (shm_unlink(ctx.name) == -1)
-	{
-		*err = errno;
-		return (SCB_SHMEM);
+		if (ret != 0)
+		{
+			*err = errno;
+			return (SCB_SEMPH);
+		}
+
+		if (shm_unlink(ctx.name) == -1)
+		{
+			*err = errno;
+			return (SCB_SHMEM);
+		}
 	}
 
 	return (SCB_OK);
