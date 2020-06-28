@@ -4,8 +4,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <time.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 #include "buffercircular.h"
 #include "mensaje.h"
+#include "colors.h"
 #include <ncurses.h>
 
 //Función para capturar teclas
@@ -26,9 +29,40 @@ int kbhit(void)
 }
 
 //Función especial para finalizar
-void finalizar()
+void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_t pid)
 {
-	printf("Finalizando debido a variable global fue establecida como TRUE...\n\r");
+	struct rusage usage;
+	getrusage(RUSAGE_SELF, &usage);
+	printf(ANSI_RED_BACKGROUND "\rFinalizando %d debido a variable global fue establecida como TRUE..." ANSI_COLOR_RESET "\n", pid);
+	printf("\rMensajes enviados........." ANSI_GRAY_BACKGROUND
+		   " %d " ANSI_COLOR_RESET
+		   "\n",
+		   sentMessages);
+	printf("\rTiempo total bloqueado...." ANSI_GRAY_BACKGROUND
+		   " %g " ANSI_COLOR_RESET
+		   "\n",
+		   tiempoBloqueo);
+	printf("\rTiempo total de espera...." ANSI_GRAY_BACKGROUND
+		   " %g " ANSI_COLOR_RESET
+		   "\n",
+		   tiempoEspera);
+	printf("\rTiempo de CPU:............" ANSI_GRAY_BACKGROUND
+		   " %ld.%06ld  " ANSI_COLOR_RESET
+		   " segundos en USER. "
+		   "\n",
+		   (long int)usage.ru_utime.tv_sec, (long int)usage.ru_utime.tv_usec);
+
+	printf("\rTiempo de CPU:............" ANSI_GRAY_BACKGROUND
+		   " %ld.%06ld  " ANSI_COLOR_RESET
+		   " segundos en KERNEL. "
+		   "\n",
+		   (long int)usage.ru_stime.tv_sec, (long int)usage.ru_stime.tv_usec);
+
+	// printf("Tiempo CPU: %ld.%06ld segundos en USER, %ld.%06ld segundos en KERNEL\n", usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+	//    usage.ru_utime.tv_sec,
+	//    usage.ru_utime.tv_usec,
+	//    usage.ru_stime.tv_sec,
+	//    usage.ru_stime.tv_usec);
 }
 
 //Función para finalizar con número mágico
@@ -39,6 +73,10 @@ void finalizar_magico(int magic, int myMagic)
 
 int main(int argc, char *argv[])
 {
+	int receivedMessages = 0;
+	double tiempoBloqueo = 0;
+	double tiempoEspera = 0;
+	double start;
 	pid_t processId = getpid();
 	int myMagic = processId % 6;
 	srand((unsigned)time(NULL));
@@ -116,7 +154,7 @@ int main(int argc, char *argv[])
 			//Se tiene que verificar finalizador
 			if (inf.finalizar)
 			{
-				finalizar();
+				finalizar(receivedMessages, tiempoBloqueo, tiempoEspera, processId);
 
 				return -1;
 			}
@@ -130,14 +168,19 @@ int main(int argc, char *argv[])
 
 				if (enter == 10)
 				{
-
+					start = clock();
 					scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
+					tiempoBloqueo += clock() - start;
 					printw("\rMi buffer es: %s \n\r", argv[1]);
 					printw("Numero mágico: %u \n\r", msj.numero_magico);
 					printw("Escrito por: %u \n\r", msj.pid);
 					struct tm *info;
 					info = localtime(&(msj.time));
 					printw("Hora %s \n\r", asctime(info));
+					if (scberr == SCB_OK)
+					{
+						receivedMessages = receivedMessages + 1;
+					}
 					if (msj.numero_magico == myMagic)
 					{
 						finalizar_magico(msj.numero_magico, myMagic);
@@ -190,7 +233,7 @@ int main(int argc, char *argv[])
 			//Se tiene que verificar finalizador
 			if (inf.finalizar)
 			{
-				finalizar();
+				finalizar(receivedMessages, tiempoBloqueo, tiempoEspera, processId);
 				break;
 			}
 			mensaje msj;
@@ -199,7 +242,9 @@ int main(int argc, char *argv[])
 			// se pide el buffer a memoria compartida
 			scberr = get_buffer(&ctx, argv[1], &err);
 			//Se intenta leer
+			start = clock();
 			scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
+			tiempoBloqueo += clock() - start;
 			printf("Mi buffer es: %s \n\r", argv[1]);
 			printf("Numero mágico: %u \n\r", msj.numero_magico);
 			printf("Tiempo Espera: %d \n\r", TEspera);
@@ -207,12 +252,17 @@ int main(int argc, char *argv[])
 			struct tm *info;
 			info = localtime(&(msj.time));
 			printf("Hora: %s \n\r", asctime(info));
+			if (scberr == SCB_OK)
+			{
+				receivedMessages = receivedMessages + 1;
+			}
 			if (msj.numero_magico == myMagic)
 			{
 				finalizar_magico(msj.numero_magico, myMagic);
 				break;
 			}
 			sleep(TEspera);
+			tiempoEspera += TEspera;
 			system("clear");
 		}
 	}

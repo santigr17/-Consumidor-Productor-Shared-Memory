@@ -38,11 +38,11 @@ void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_
 		   "\n",
 		   sentMessages);
 	printf("Tiempo total bloqueado...." ANSI_GRAY_BACKGROUND
-		   " %d " ANSI_COLOR_RESET
+		   " %g " ANSI_COLOR_RESET
 		   "\n",
 		   tiempoBloqueo);
 	printf("Tiempo total de espera...." ANSI_GRAY_BACKGROUND
-		   " %d " ANSI_COLOR_RESET
+		   " %g " ANSI_COLOR_RESET
 		   "\n",
 		   tiempoEspera);
 	printf("Tiempo de CPU:............" ANSI_GRAY_BACKGROUND
