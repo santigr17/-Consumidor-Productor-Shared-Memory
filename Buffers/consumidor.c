@@ -28,7 +28,7 @@ int kbhit(void)
 //Función especial para finalizar
 void finalizar()
 {
-	printf("Finalizando debido a variable global fue establecida como TRUE...\n");
+	printf("Finalizando debido a variable global fue establecida como TRUE...\n\r");
 }
 
 //Función para finalizar con número mágico
@@ -102,30 +102,32 @@ int main(int argc, char *argv[])
 			buffer ctx;
 			// se pide el buffer a memoria compartida
 			scberr = get_buffer(&ctx, argv[1], &err);
+
+			/* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
+			errores scberr2;
+			//se pide info del controller
+			int err = 0;
+			int semlleno = 0;
+			int semvacio = 0;
+			int semcon_carrera = 0;
+			buffer_control inf;
+			scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
+			printf("Finalizador.........: [%u] \n\r", inf.finalizar);
+			//Se tiene que verificar finalizador
+			if (inf.finalizar)
+			{
+				finalizar();
+
+				return -1;
+			}
 			if (kbhit())
 			{
+				printw("Validando char \n");
 				int enter = getch();
-				//se pide info del controller
 
-				int err = 0;
-				int semlleno = 0;
-				int semvacio = 0;
-				int semcon_carrera = 0;
-				buffer_control inf;
-				errores scberr2;
-
-				/* errores get_info(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/
-				scberr2 = get_info_buffer(argv[1], &inf, &semlleno, &semvacio, &semcon_carrera, &err);
 				//Se verifica algun error
 				SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
-				printf("Finalizador.........: [%u] \n\r", inf.finalizar);
 
-				//Se tiene que verificar finalizador
-				if (inf.finalizar)
-				{
-					finalizar();
-					break;
-				}
 				if (enter == 10)
 				{
 
@@ -146,9 +148,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-
 				printw("Por favor presionar ENTER para intentar consumir mensaje \n");
-
 				sleep(2);
 			}
 			system("clear");

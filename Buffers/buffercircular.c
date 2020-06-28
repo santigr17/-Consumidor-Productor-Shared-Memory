@@ -619,7 +619,7 @@ errores destruir_buffer(char *name, int *err)
 
 	int finalizar = 1;
 	(*puntero).finalizar = finalizar;
-
+	sleep((*puntero).maxEspera);
 	*err = 0;
 
 	//se obtiene el buffer
