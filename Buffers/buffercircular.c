@@ -555,7 +555,7 @@ errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 	if (sem_wait(&(ctx->ctrl->con_carrera)) == -1)
 	{
 		*err = errno;
-		sem_post(&(ctx->ctrl->lleno));
+		sem_post(&(ctx->ctrl->vacio));
 		return (SCB_SEMPH);
 	}
 
