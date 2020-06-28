@@ -15,5 +15,8 @@
 #define ANSI_PINK_BACKGROUND "\x1b[101m"
 #define ANSI_CYAN_BACKGROUND "\x1b[46m"
 #define ANSI_GRAY_BACKGROUND "\x1b[100m"
+#define ANSI_LIGHT_GREEN_BACKGROUND "\x1b[106m"
+#define ANSI_MAGENTA_GREEN_BACKGROUND "\x1b[45m"
+
 #endif
 // printf("%c[%d;%dmHello World%c[%dm\n",27,1,33,27,0);

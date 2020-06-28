@@ -68,7 +68,7 @@ void finalizar(int sentMessages, double tiempoBloqueo, double tiempoEspera, pid_
 //Función para finalizar con número mágico
 void finalizar_magico(int magic, int myMagic)
 {
-	printf("Finalizando debido a variable número mágico: %d es igual a mi num mágico %d...\n", magic, myMagic);
+	printf(ANSI_MAGENTA_GREEN_BACKGROUND "Finalizando debido a variable número mágico: %d es igual a mi num mágico %d...\n" ANSI_COLOR_RESET, magic, myMagic);
 }
 
 int main(int argc, char *argv[])
@@ -171,12 +171,13 @@ int main(int argc, char *argv[])
 					start = clock();
 					scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
 					tiempoBloqueo += clock() - start;
-					printw("\rMi buffer es: %s \n\r", argv[1]);
-					printw("Numero mágico: %u \n\r", msj.numero_magico);
-					printw("Escrito por: %u \n\r", msj.pid);
+					printf(ANSI_COLOR_RESET "\rMi buffer es:......." ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %s \n\r " ANSI_COLOR_RESET, argv[1]);
+					printf(ANSI_COLOR_RESET "\rNumero mágico:......" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r " ANSI_COLOR_RESET, msj.numero_magico);
+					printf(ANSI_COLOR_RESET "\rEscrito por:........" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r " ANSI_COLOR_RESET, msj.pid);
 					struct tm *info;
 					info = localtime(&(msj.time));
-					printw("Hora %s \n\r", asctime(info));
+					printf(ANSI_COLOR_RESET "\rHora:..............." " %s \n\r " , asctime(info));
+					printf(ANSI_COLOR_RESET);
 					if (scberr == SCB_OK)
 					{
 						receivedMessages = receivedMessages + 1;
@@ -191,7 +192,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printw("Por favor presionar ENTER para intentar consumir mensaje \n");
+				printf(ANSI_COLOR_MAGENTA"Por favor presionar ENTER para intentar consumir mensaje \n"ANSI_COLOR_RESET);
 				sleep(2);
 			}
 			system("clear");
@@ -245,13 +246,13 @@ int main(int argc, char *argv[])
 			start = clock();
 			scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
 			tiempoBloqueo += clock() - start;
-			printf("Mi buffer es: %s \n\r", argv[1]);
-			printf("Numero mágico: %u \n\r", msj.numero_magico);
-			printf("Tiempo Espera: %d \n\r", TEspera);
-			printf("Escrito por: %u \n\r", msj.pid);
+			printf(ANSI_COLOR_RESET "Mi buffer es:......." ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %s \n\r" ANSI_COLOR_RESET, argv[1]);
+			printf(ANSI_COLOR_RESET "Numero mágico:......" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r" ANSI_COLOR_RESET, msj.numero_magico);
+			printf(ANSI_COLOR_RESET "Tiempo Espera:......" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %d \n\r" ANSI_COLOR_RESET, TEspera);
+			printf(ANSI_COLOR_RESET "Escrito por:........" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r" ANSI_COLOR_RESET, msj.pid);
 			struct tm *info;
 			info = localtime(&(msj.time));
-			printf("Hora: %s \n\r", asctime(info));
+			printf(ANSI_COLOR_RESET "Hora:..............." " %s \n\r " , asctime(info));
 			if (scberr == SCB_OK)
 			{
 				receivedMessages = receivedMessages + 1;
