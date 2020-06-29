@@ -134,6 +134,7 @@ int main(int argc, char *argv[])
 		// }
 		sentMessages = sentMessages + 1;
 		struct tm *info;
+		printf(ANSI_GRAY_BACKGROUND ANSI_COLOR_BLACK "\r Actualmente: Productores:  %d, consumidores: %d , índice: %d \n\r" ANSI_COLOR_RESET, inf.productores, inf.consumidores, inf.qtd);
 		printf(ANSI_GREEN_BACKGROUND ANSI_COLOR_BLACK " Soy un productor corriendo  PID: %i " ANSI_COLOR_RESET "\n", msj.pid);
 		printf("Generé el número mágico: " ANSI_PINK_BACKGROUND " %i " ANSI_COLOR_RESET "\n", msj.numero_magico);
 		printf("A las : " ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK " %s " ANSI_COLOR_RESET, asctime(info));

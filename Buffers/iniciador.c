@@ -18,8 +18,8 @@ void imprimir(char *name, buffer_control *inf, int semlleno, int semvacio)
 		   name);
 	printf("Finalizador.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).finalizar);
 	printf("Cabeza..............:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cabeza);
-	printf("COLA................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cola);
-	printf("Qtd.................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).qtd);
+	printf("Cola................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cola);
+	printf("Índice.................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).qtd);
 	printf("Espera máxima.......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).maxEspera);
 	printf("Capaciad total......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).capacidad);
 	printf("Productores.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).productores);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 		//Se verifica algun error
 		SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr2, err, 1);
 		// se printea
-		
+
 		imprimir(argv[1], &inf, semlleno, semvacio);
 		printf("Request Context: %p  \n", &(ctx.ctrl));
 		sleep(1);
