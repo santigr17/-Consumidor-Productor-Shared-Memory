@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 	scberr = get_buffer(&ctx, argv[1], &err);
 
 	//Funciones para la captura de teclas
-	WINDOW *win = initscr();
+	initscr();
 	cbreak();
 	noecho();
 	nodelay(stdscr, TRUE);

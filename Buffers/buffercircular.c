@@ -145,8 +145,8 @@ errores add_productor(buffer *ctx, char *name, int espera, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
-	size_t szshmem = 0;
-	void *shmem = NULL;
+	// size_t szshmem = 0;
+	// void *shmem = NULL;
 	buffer_control scbInf;
 	errores scberr;
 
@@ -172,7 +172,7 @@ errores add_productor(buffer *ctx, char *name, int espera, int *err)
 	int productores_nuevos = scbInf.productores;
 	productores_nuevos = productores_nuevos + 1;
 	(*puntero).productores = productores_nuevos;
-	int maxEspera = scbInf.maxEspera;
+	// int maxEspera = scbInf.maxEspera;
 	// if(maxEspera <  espera){
 	// }
 	(*puntero).maxEspera += espera;
@@ -187,8 +187,8 @@ errores remove_iniciador(buffer *ctx, char *name, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
-	size_t szshmem = 0;
-	void *shmem = NULL;
+	// size_t szshmem = 0;
+	// void *shmem = NULL;
 	buffer_control scbInf;
 	errores scberr;
 
@@ -223,8 +223,8 @@ errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
-	size_t szshmem = 0;
-	void *shmem = NULL;
+	// size_t szshmem = 0;
+	//void *shmem = NULL;
 	buffer_control scbInf;
 	errores scberr;
 
@@ -252,7 +252,7 @@ errores add_consumidor(buffer *ctx, char *name, int espera, int *err)
 	(*puntero).consumidores = consumidores_nuevos;
 
 	*err = 0;
-	int maxEspera = scbInf.maxEspera;
+	// int maxEspera = scbInf.maxEspera;
 	// if(maxEspera <  espera){
 	// }
 	(*puntero).maxEspera += espera;
@@ -265,8 +265,8 @@ errores remove_productor(buffer *ctx, char *name, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
-	size_t szshmem = 0;
-	void *shmem = NULL;
+	//size_t szshmem = 0;
+	//void *shmem = NULL;
 	buffer_control scbInf;
 	errores scberr;
 
@@ -305,8 +305,8 @@ errores remove_consumidor(buffer *ctx, char *name, int *err)
 {
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
-	size_t szshmem = 0;
-	void *shmem = NULL;
+	// size_t szshmem = 0;
+	// void *shmem = NULL;
 	buffer_control scbInf;
 	errores scberr;
 
@@ -420,7 +420,8 @@ void check_error(errores err, int ret, char *msg)
 		strncpy(errdesc, "no error", TAMAX_MSGERROR);
 		break;
 	}
-	if (errat == "Success")
+	//if (errat == "Success")
+	if (!strcmp(errat, "Success"))
 		snprintf(msg, TAMAX_MSGERROR, "\n");
 	else
 		snprintf(msg, TAMAX_MSGERROR, "Error at [%s]: [%s]\n", errat, errdesc);
@@ -617,7 +618,7 @@ errores get_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 		sem_post(&(ctx->ctrl->lleno));
 		ret = (SCB_SEMPH);
 	}
-	printf("QTD:  $d \n", ctx->ctrl->qtd);
+	printf("QTD:  %d \n", ctx->ctrl->qtd);
 	if (ctx->ctrl->qtd == 0)
 	{
 		ret = SCB_VACIO;
@@ -661,8 +662,8 @@ errores destruir_buffer(char *name, int *err)
 	scberr = get_buffer(&ctx, name, err);
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
-	size_t szshmem = 0;
-	void *shmem = NULL;
+	// size_t szshmem = 0;
+	// void *shmem = NULL;
 	buffer_control scbInf;
 
 	/*get_info_buffer(char *name, buffer_control *inf, int *semlleno, int *semvacio, int *semcon_carrera,int *semconsumidores,int *semproductores, int *err);*/

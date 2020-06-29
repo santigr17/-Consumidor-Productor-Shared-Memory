@@ -74,8 +74,9 @@ int main(int argc, char *argv[])
 	unsigned int media;
 	media = atoi(argv[2]);
 	int TEspera = 0;
-	//TEspera = ran_expo(1 / media) + 1;
-	TEspera = 5;
+	TEspera = ran_expo(media/(media * 2.0)) + 1;
+	printf("Media %d TEspera %d \n",media,TEspera);
+	//TEspera = 5;
 	pid_t processId = getpid();
 	// unsigned int sec = 0;
 	char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
@@ -88,7 +89,8 @@ int main(int argc, char *argv[])
 	scberr = add_productor(&ctx, argv[1], TEspera, &err);
 
 	// MEDICION de TIEMPOS
-	double tiempoEspera, tiempoBloqueo, start, start2;
+	double tiempoEspera, tiempoBloqueo, start;
+	//, start2;
 
 	//SE LIGA PRODUCTOR CON BUFFER USANDO EL ARGUMENTO PASADO POR CONSOLA
 	SCB_SAMPLE_CHECK_ERROR(SCB_OK, scberr, ret, 1);
@@ -136,6 +138,8 @@ int main(int argc, char *argv[])
 		struct tm *info;
 		printf(ANSI_GRAY_BACKGROUND ANSI_COLOR_BLACK "\r Actualmente: Productores:  %d, consumidores: %d , índice: %d \n\r" ANSI_COLOR_RESET, inf.productores, inf.consumidores, inf.qtd);
 		printf(ANSI_GREEN_BACKGROUND ANSI_COLOR_BLACK " Soy un productor corriendo  PID: %i " ANSI_COLOR_RESET "\n", msj.pid);
+		
+		printf("Mi tiempo de espera es: " ANSI_PINK_BACKGROUND " %i " ANSI_COLOR_RESET "\n", msj.numero_magico);
 		printf("Generé el número mágico: " ANSI_PINK_BACKGROUND " %i " ANSI_COLOR_RESET "\n", msj.numero_magico);
 		printf("A las : " ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK " %s " ANSI_COLOR_RESET, asctime(info));
 		info = localtime(&(msj.time));

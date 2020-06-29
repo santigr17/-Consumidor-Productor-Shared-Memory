@@ -19,7 +19,7 @@ void imprimir(char *name, buffer_control *inf, int semlleno, int semvacio)
 	printf("Finalizador.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).finalizar);
 	printf("Cabeza..............:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cabeza);
 	printf("Cola................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).cola);
-	printf("Índice.................:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).qtd);
+	printf("Índice..............:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).qtd);
 	printf("Espera máxima.......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).maxEspera);
 	printf("Capaciad total......:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).capacidad);
 	printf("Productores.........:" ANSI_CYAN_BACKGROUND ANSI_COLOR_BLACK "[%u]\n" ANSI_COLOR_RESET, (*inf).productores);
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	unsigned int cantidad = 0;
 	// char scberrormsgcreate[TAMAX_MSGERROR + 1] = {'\0'};
 	buffer ctx;
-	errores scberr1 = SCB_OK;
+	//errores scberr1 = SCB_OK;
 	// mensaje carta;
 	if (argc != 3)
 	{
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	printf("Creando Buffer Cicular compartido:"
 		   "[%s]\n",
 		   argv[1]);
-	scberr1 = crear_buffer(argv[1], cantidad, sizeof(mensaje), &ctx, &ret);
+	crear_buffer(argv[1], cantidad, sizeof(mensaje), &ctx, &ret);
 	//Se prueba la info del buffer creado:
 
 	int err = 0;
