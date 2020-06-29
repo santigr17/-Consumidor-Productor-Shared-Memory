@@ -66,7 +66,8 @@ typedef enum{
 	SCB_LLENO,
 	SCB_VACIO,
 	SCB_BLOQUEADO,
-	SCB_ITER_FINAL
+	SCB_ITER_FINAL,
+	SCB_FINISHED
 }errores;
 
 //enum para bloquear el buffer

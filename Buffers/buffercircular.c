@@ -541,14 +541,14 @@ errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 	if (block == UNBLOCK)
 	{
 		if (sem_trywait(&(ctx->ctrl->vacio)) == -1)
-			return (BLOCK);
+			ret = (BLOCK);
 	}
 	else
 	{
 		if (sem_wait(&(ctx->ctrl->vacio)) == -1)
 		{
 			*err = errno;
-			return (SCB_SEMPH);
+			ret = (SCB_SEMPH);
 		}
 	}
 
@@ -556,11 +556,26 @@ errores put_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 	{
 		*err = errno;
 		sem_post(&(ctx->ctrl->vacio));
-		return (SCB_SEMPH);
+		ret = (SCB_SEMPH);
 	}
-
+	printf("QDT: %d CAPACIDAD: %d \n", ctx->ctrl->qtd, ctx->ctrl->capacidad);
 	if (ctx->ctrl->qtd == ctx->ctrl->capacidad)
+	{
 		ret = SCB_LLENO;
+		printf("Estará lleno? \n");
+		sem_post(&(ctx->ctrl->con_carrera));
+		sem_wait(&(ctx->ctrl->vacio));
+		if (ctx->ctrl->finalizar)
+		{
+			printf("Se llamo a finalizar\n");
+			return SCB_FINISHED;
+		}
+		sem_wait(&(ctx->ctrl->con_carrera));
+		printf("me dejó continuar\n");
+		copyMessage(ctx->mensajes + (ctx->ctrl->cabeza * ctx->ctrl->largo_mensaje), mensaje);
+		ctx->ctrl->cabeza = (ctx->ctrl->cabeza + 1) % ctx->ctrl->capacidad;
+		ctx->ctrl->qtd++;
+	}
 	else
 	{
 		copyMessage(ctx->mensajes + (ctx->ctrl->cabeza * ctx->ctrl->largo_mensaje), mensaje);
@@ -585,14 +600,14 @@ errores get_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 	if (block == UNBLOCK)
 	{
 		if (sem_trywait(&(ctx->ctrl->lleno)) == -1)
-			return (SCB_BLOQUEADO);
+			ret = (SCB_BLOQUEADO);
 	}
 	else
 	{
 		if (sem_wait(&(ctx->ctrl->lleno)) == -1)
 		{
 			*err = errno;
-			return (SCB_SEMPH);
+			ret = (SCB_SEMPH);
 		}
 	}
 
@@ -600,11 +615,26 @@ errores get_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 	{
 		*err = errno;
 		sem_post(&(ctx->ctrl->lleno));
-		return (SCB_SEMPH);
+		ret = (SCB_SEMPH);
 	}
-
+	printf("QTD:  $d \n", ctx->ctrl->qtd);
 	if (ctx->ctrl->qtd == 0)
+	{
 		ret = SCB_VACIO;
+		printf("Estará vacío? \n");
+		sem_post(&(ctx->ctrl->con_carrera));
+		sem_wait(&(ctx->ctrl->lleno));
+		if (ctx->ctrl->finalizar)
+		{
+			printf("Se llamo a finalizar\n");
+			return SCB_FINISHED;
+		}
+		printf("me dejó continuar \n");
+		sem_wait(&(ctx->ctrl->con_carrera));
+		copyMessage(mensaje, ctx->mensajes + (ctx->ctrl->cola * ctx->ctrl->largo_mensaje));
+		ctx->ctrl->cola = (ctx->ctrl->cola + 1) % ctx->ctrl->capacidad;
+		ctx->ctrl->qtd--;
+	}
 	else
 	{
 		copyMessage(mensaje, ctx->mensajes + (ctx->ctrl->cola * ctx->ctrl->largo_mensaje));
@@ -614,6 +644,7 @@ errores get_msg(buffer *ctx, void *mensaje, void *(*copyMessage)(void *dest, con
 	}
 	//Se libera condicion de carrera y se disminuye los vacios
 	sem_post(&(ctx->ctrl->con_carrera));
+	printf("Libero vacío\n");
 	sem_post(&(ctx->ctrl->vacio));
 
 	*err = 0;
@@ -627,7 +658,7 @@ errores destruir_buffer(char *name, int *err)
 	int ret = 0;
 	buffer ctx;
 	errores scberr;
-
+	scberr = get_buffer(&ctx, name, err);
 	int fdshmem = 0;
 	int sf = 0, se = 0, sb = 0;
 	size_t szshmem = 0;
@@ -653,10 +684,44 @@ errores destruir_buffer(char *name, int *err)
 	}
 	//se trae el control
 	buffer_control *puntero = mmap(0, sizeof(buffer_control), PROT_READ | PROT_WRITE, MAP_SHARED, fdshmem, 0);
+	printf("\nRevisando ningún proceso bloqueado\n");
+	// while (1)
+	// {
+	// 	int sem_lleno_valor = 0;
+	// 	int sem_vacio_valor = 0;
+	// 	printf("\nRevisando ningún proceso bloqueado 2\n");
 
+	// 	sem_getvalue(&(ctx.ctrl->lleno), &sem_lleno_valor);
+	// 	sem_getvalue(&(ctx.ctrl->vacio), &sem_vacio_valor);
+	// 	printf("\nRevisando ningún proceso bloqueado 3\n");
+
+	// 	if (sem_lleno_valor >= 0 && sem_vacio_valor >= 0)
+	// 	{
+	// 		break;
+	// 	}
+	// 	else
+	// 	{
+	// 		printf("\nEsperar a que los procesos terminen \n");
+	// 	}
+	// }
 	int finalizar = 1;
 	(*puntero).finalizar = finalizar;
+	printf("\nLibero semáforos\n");
+	sem_post(&(ctx.ctrl->con_carrera));
+	for (int i = 0; i < (ctx.ctrl->consumidores); i++)
+	{
+		/* code */
+		sem_post(&(ctx.ctrl->lleno));
+	}
+	for (size_t i = 0; i < (ctx.ctrl->productores); i++)
+	{
+		sem_post(&(ctx.ctrl->vacio));
+		/* code */
+	}
+
+	printf("\nTermino de liberar semáforos \n");
 	sleep((*puntero).maxEspera + 3);
+
 	if ((*puntero).initFinalizado)
 	{
 		*err = 0;
@@ -665,6 +730,7 @@ errores destruir_buffer(char *name, int *err)
 		if (scberr != SCB_OK)
 			return (scberr);
 		// se destruyen los semaforos
+		printf("\nSem destroy llamado\n");
 		ret = sem_destroy(&(ctx.ctrl->con_carrera)) | sem_destroy(&(ctx.ctrl->vacio)) | sem_destroy(&(ctx.ctrl->lleno));
 
 		if (ret != 0)

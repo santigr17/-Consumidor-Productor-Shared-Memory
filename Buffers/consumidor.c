@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 			}
 			if (kbhit())
 			{
-				printw("Validando char \n");
+				printf("Validando char \n");
 				int enter = getch();
 
 				//Se verifica algun error
@@ -170,7 +170,9 @@ int main(int argc, char *argv[])
 				if (enter == 10)
 				{
 					start = clock();
+					printf("\rVoy a pedir un mensaje\n\r");
 					scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
+					printf("\rMe dejó continuar\n\r");
 					tiempoBloqueo += clock() - start;
 					printf(ANSI_COLOR_RESET "\rMi buffer es:......." ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %s \n\r " ANSI_COLOR_RESET, argv[1]);
 					printf(ANSI_COLOR_RESET "\rNumero mágico:......" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r " ANSI_COLOR_RESET, msj.numero_magico);
@@ -197,10 +199,11 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printf(ANSI_COLOR_MAGENTA "Por favor presionar ENTER para intentar consumir mensaje \n" ANSI_COLOR_RESET);
+				system("clear");
+				printf(ANSI_COLOR_MAGENTA "\rPor favor presionar ENTER para intentar consumir mensaje \n\r" ANSI_COLOR_RESET);
 				sleep(2);
 			}
-			system("clear");
+			//system("clear");
 		}
 	}
 	else if (!strcmp(argv[2], "automatico"))
@@ -251,7 +254,9 @@ int main(int argc, char *argv[])
 			scberr = get_buffer(&ctx, argv[1], &err);
 			//Se intenta leer
 			start = clock();
+			printf("\rVoy a pedir un mensaje\n\r");
 			scberr = get_msg(&ctx, &msj, copyMessage, BLOCK, &ret);
+			printf("\rMe dejo continuar\n\r");
 			tiempoBloqueo += clock() - start;
 			printf(ANSI_COLOR_RESET "Mi buffer es:......." ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %s \n\r" ANSI_COLOR_RESET, argv[1]);
 			printf(ANSI_COLOR_RESET "Numero mágico:......" ANSI_LIGHT_GREEN_BACKGROUND ANSI_COLOR_BLACK " %u \n\r" ANSI_COLOR_RESET, msj.numero_magico);

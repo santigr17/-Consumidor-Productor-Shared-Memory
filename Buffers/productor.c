@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		buffer ctx;
-		system("clear");
+		//system("clear");
 		//se refresca el buffer
 		scberr = get_buffer(&ctx, argv[1], &err);
 
