@@ -183,10 +183,10 @@ int main(int argc, char *argv[])
 											" %s \n\r ",
 						   asctime(info));
 					printf(ANSI_COLOR_RESET);
-					if (scberr == SCB_OK)
-					{
+					// if (scberr == SCB_OK)
+					// {
+					// }
 						receivedMessages = receivedMessages + 1;
-					}
 					if (msj.numero_magico == myMagic)
 					{
 						remove_consumidor(&ctx, argv[1], &err);
@@ -267,10 +267,10 @@ int main(int argc, char *argv[])
 			printf(ANSI_COLOR_RESET "Hora:..............."
 									" %s \n\r ",
 				   asctime(info));
-			if (scberr == SCB_OK)
-			{
-				receivedMessages = receivedMessages + 1;
-			}
+			// if (scberr == SCB_OK)
+			// {
+			// }
+			receivedMessages = receivedMessages + 1;
 			if (msj.numero_magico == myMagic)
 			{
 				remove_consumidor(&ctx, argv[1], &err);

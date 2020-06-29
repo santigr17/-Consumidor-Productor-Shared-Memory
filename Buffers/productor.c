@@ -129,10 +129,10 @@ int main(int argc, char *argv[])
 		//Se intenta escribir
 		scberr = put_msg(&ctx, &msj, copyMessage, UNBLOCK, &ret);
 		tiempoBloqueo += clock() - start;
-		if (scberr == SCB_OK)
-		{
-			sentMessages = sentMessages + 1;
-		}
+		// if (scberr == SCB_OK)
+		// {
+		// }
+		sentMessages = sentMessages + 1;
 		struct tm *info;
 		printf(ANSI_GREEN_BACKGROUND ANSI_COLOR_BLACK " Soy un productor corriendo  PID: %i " ANSI_COLOR_RESET "\n", msj.pid);
 		printf("Generé el número mágico: " ANSI_PINK_BACKGROUND " %i " ANSI_COLOR_RESET "\n", msj.numero_magico);
